@@ -1,0 +1,72 @@
+swagger: '2.0'
+info:
+  title: GonnaTrackYou
+  description: Letting you know how cool you are!
+  version: "0.1"
+  contact:
+    name: Dário T A for Cool Apps Ltd.
+    email: tech@iDlySystems.com
+host: "localhost:12345"
+schemes:
+  - http
+produces:
+  - application/json
+consumes:
+  - application/json
+paths:
+  /create:
+    post:
+      # this had a space in it, but it breaks html2 docs for some reason
+      operationId: CreateUser
+      summary: Create a user from a token
+      description: |
+        Takes a user's access token for Facebook and validates it through Graph API. It then creates a user locally if needed, or informs the client if they should prompt the user to accept some permission they denied.
+      parameters:
+        - name: accessToken
+          in: query
+          required: true
+          type: string
+          description: The user's access token as returned by Facebook.
+      responses:
+        201:
+          description: The token passed validation and a new user was created.
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+        202:
+          description: The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions).
+          schema:
+            $ref: '#/definitions/DeniedPermissions'
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+        204:
+          description: The token passed validation and belongs to an existing user.
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+        401:
+          description: The token failed validation.
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+        500:
+          description: Unexpected error occurred. May ignore the Accept header, not include CORS headers, etc. As such, the client should not attempt to inspect the body.
+definitions:
+  DeniedPermissions:
+    description: An array of names of permissions the user denied the app access to.
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Permission'
+  Permission:
+    type: object
+    properties:
+      id:
+        type: string
+        description: The name of the permission this object represents, as returned by Graph API.
+      type:
+        type: string
+        description: Always "permission". Required for conformance to JSON API specification.
