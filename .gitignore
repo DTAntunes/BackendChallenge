@@ -1,0 +1,3 @@
+**/*.swp
+code/src/main/resources/config.properties
+code/target
