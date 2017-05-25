@@ -47,8 +47,46 @@ paths:
           headers:
             Access-Control-Allow-Origin:
               type: string
-        500:
-          description: Unexpected error occurred. May ignore the Accept header, not include CORS headers, etc. As such, the client should not attempt to inspect the body.
+  /data:
+    get:
+      operationId: GetUserData
+      summary: Retrieve user's popularity, interests and location data
+      description: |
+        Using a token/userId previously registered with the service, allows a client to retrieve their popularity data, favourite band and where they've been the most.
+      parameters:
+        - name: token
+          required: false
+          description: A login token as returned by the login endpoint.
+          type: string
+          in: query
+        - name: userId
+          required: false
+          description: The user ID of a user previously registered with the service. Only required if session cookies are not supported.
+          type: string
+          in: query
+      responses:
+        200:
+          description: Retrieval of some of the user's data was successful. Data which could not be retrieved due to scope issues will be indicated in the response.
+          schema:
+            $ref: '#/definitions/UserData'
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+        401:
+          description: The login token provided was invalid.
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+        403:
+          description: The stored access token has expired - the user will need to login again.
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+        404:
+          description: The stored access token doesn't have any of the required scopes and so no data can be provided.
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
 definitions:
   CreateResponse:
     description: Describes the result of a user creation attempt.
@@ -80,3 +118,54 @@ definitions:
       type:
         type: string
         description: Always "permission". Required for conformance to JSON API specification.
+  UserData:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The user's ID.
+          type:
+            type: string
+            description: Always "interests". Required for conformance to JSON API specification.
+          attributes:
+            type: object
+            properties:
+              favouriteMusic:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    description: Describes whether the user's music information was accessible. May be true with no other keys available if the user has no music information on their profile. If false, no other keys will be available.
+                  band:
+                    type: string
+                    description: Name of the user's preferred band. The preferred band is defined as the band that the user has liked for the longest. This is due to technical limitations (there doesn't seem to be a way to find interactions between a user and a page, and this would be very intensive to do for all pages even batched) and following the reasoning that whatever page they've been following longest is what they like most.
+                  likeDate:
+                    type: string
+                    description: The date at which the page was liked, in the same format as Facebook uses - "YYYY:MM:DD'T'HH:MM:SSZZZZ".
+              favouritePlace:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    description: Describes whether the user's music information was accessible. May be true with no other keys available if the user has no music information on their profile. If false, no other keys will be available.
+                  place:
+                    type: string
+                    description: The name of the user's favourite place based on how many times they've tagged themselves there or been tagged there. Only reports locations for which Facebook reports a city name and country.
+                  count:
+                    type: integer
+                    description: The number of times the user was tagged in that location.
+              popular:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    description: Describes whether the user's music information was accessible. May be true with no other keys available if the user has no music information on their profile. If false, no other keys will be available.
+                  popular:
+                    type: boolean
+                    description: Whether the user is popular (has more than 50 friends) or not.
+                  popularMeasure:
+                    type: integer
+                    description: The floor of the percentage of the 5000 user limit the user has.

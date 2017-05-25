@@ -710,17 +710,40 @@ margin-bottom: 20px;
   <script>
     // Script section to load models into a JS Var
     var defs = {}
-    defs.DeniedPermissions = {
+    defs.CreateResponse = {
   "type" : "object",
   "properties" : {
     "data" : {
       "type" : "array",
+      "description" : "A (potentially empty) list of rejected permissions in generating the token.",
       "items" : {
         "$ref" : "#/definitions/Permission"
       }
+    },
+    "meta" : {
+      "$ref" : "#/definitions/CreateResponse_meta"
     }
   },
-  "description" : "An array of names of permissions the user denied the app access to."
+  "description" : "Describes the result of a user creation attempt."
+};
+    defs.CreateResponse_meta = {
+  "properties" : {
+    "accessInfo" : {
+      "$ref" : "#/definitions/CreateResponse_meta_accessInfo"
+    }
+  }
+};
+    defs.CreateResponse_meta_accessInfo = {
+  "properties" : {
+    "userId" : {
+      "type" : "string",
+      "description" : "The user ID of the authenticated user."
+    },
+    "token" : {
+      "type" : "string",
+      "description" : "A login token for this device."
+    }
+  }
 };
     defs.Permission = {
   "type" : "object",
@@ -732,6 +755,90 @@ margin-bottom: 20px;
     "type" : {
       "type" : "string",
       "description" : "Always \"permission\". Required for conformance to JSON API specification."
+    }
+  }
+};
+    defs.UserData = {
+  "type" : "object",
+  "properties" : {
+    "data" : {
+      "$ref" : "#/definitions/UserData_data"
+    }
+  }
+};
+    defs.UserData_data = {
+  "properties" : {
+    "id" : {
+      "type" : "string",
+      "description" : "The user's ID."
+    },
+    "type" : {
+      "type" : "string",
+      "description" : "Always \"interests\". Required for conformance to JSON API specification."
+    },
+    "attributes" : {
+      "$ref" : "#/definitions/UserData_data_attributes"
+    }
+  }
+};
+    defs.UserData_data_attributes = {
+  "properties" : {
+    "favouriteMusic" : {
+      "$ref" : "#/definitions/UserData_data_attributes_favouriteMusic"
+    },
+    "favouritePlace" : {
+      "$ref" : "#/definitions/UserData_data_attributes_favouritePlace"
+    },
+    "popular" : {
+      "$ref" : "#/definitions/UserData_data_attributes_popular"
+    }
+  }
+};
+    defs.UserData_data_attributes_favouriteMusic = {
+  "properties" : {
+    "error" : {
+      "type" : "boolean",
+      "description" : "Describes whether the user's music information was accessible. May be true with no other keys available if the user has no music information on their profile. If false, no other keys will be available."
+    },
+    "band" : {
+      "type" : "string",
+      "description" : "Name of the user's preferred band. The preferred band is defined as the band that the user has liked for the longest. This is due to technical limitations (there doesn't seem to be a way to find interactions between a user and a page, and this would be very intensive to do for all pages even batched) and following the reasoning that whatever page they've been following longest is what they like most."
+    },
+    "likeDate" : {
+      "type" : "string",
+      "description" : "The date at which the page was liked, in the same format as Facebook uses - \"YYYY:MM:DD'T'HH:MM:SSZZZZ\"."
+    }
+  }
+};
+    defs.UserData_data_attributes_favouritePlace = {
+  "properties" : {
+    "error" : {
+      "type" : "boolean",
+      "description" : "Describes whether the user's music information was accessible. May be true with no other keys available if the user has no music information on their profile. If false, no other keys will be available."
+    },
+    "place" : {
+      "type" : "string",
+      "description" : "The name of the user's favourite place based on how many times they've tagged themselves there or been tagged there. Only reports locations for which Facebook reports a city name and country."
+    },
+    "count" : {
+      "type" : "integer",
+      "description" : "The number of times the user was tagged in that location."
+    }
+  }
+};
+    defs.UserData_data_attributes_popular = {
+  "properties" : {
+    "error" : {
+      "type" : "boolean",
+      "description" : "Describes whether the user's music information was accessible. May be true with no other keys available if the user has no music information on their profile. If false, no other keys will be available."
+    },
+    "popular" : {
+      "type" : "boolean",
+      "description" : "Whether the user is popular (has more than 50 friends) or not."
+    },
+    "popularMeasure" : {
+      "type" : "integer",
+      "description" : "The floor of the percentage of the 5000 user limit the user has."
     }
   }
 };
@@ -752,8 +859,11 @@ margin-bottom: 20px;
             <li class="nav-fixed nav-header active" data-group="_"><a href="#api-_">API Summary</a></li>
 
                   <li class="nav-header" data-group="Default"><a href="#api-Default">API Methods - Default</a></li>
-                    <li data-group="Default" data-name="createUser" class="">
-                      <a href="#api-Default-createUser">createUser</a>
+                    <li data-group="Default" data-name="getUserData" class="">
+                      <a href="#api-Default-getUserData">getUserData</a>
+                    </li>
+                    <li data-group="Default" data-name="loginUser" class="">
+                      <a href="#api-Default-loginUser">loginUser</a>
                     </li>
           </ul>
         </nav>
@@ -776,42 +886,42 @@ margin-bottom: 20px;
         <div id="sections">
                 <section id="api-Default">
                   <h1>Default</h1>
-                    <div id="api-Default-createUser">
-                      <article id="api-Default-createUser-0" data-group="User" data-name="createUser" data-version="0">
+                    <div id="api-Default-getUserData">
+                      <article id="api-Default-getUserData-0" data-group="User" data-name="getUserData" data-version="0">
                         <div class="pull-left">
-                          <h1>createUser</h1>
-                          <p>Create a user from a token</p>
+                          <h1>getUserData</h1>
+                          <p>Retrieve user&#39;s popularity, interests and location data</p>
                         </div>
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">Takes a user&#39;s access token for Facebook and validates it through Graph API. It then creates a user locally if needed, or informs the client if they should prompt the user to accept some permission they denied.
+                        <p class="marked">Using a token/userId previously registered with the service, allows a client to retrieve their popularity data, favourite band and where they&#39;ve been the most.
 </p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/create</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/data</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
                         <ul class="nav nav-tabs nav-tabs-examples">
-                          <li class="active"><a href="#examples-Default-createUser-0-curl">Curl</a></li>
-                          <li class=""><a href="#examples-Default-createUser-0-java">Java</a></li>
-                          <li class=""><a href="#examples-Default-createUser-0-android">Android</a></li>
-                          <!--<li class=""><a href="#examples-Default-createUser-0-groovy">Groovy</a></li>-->
-                          <li class=""><a href="#examples-Default-createUser-0-objc">Obj-C</a></li>
-                          <li class=""><a href="#examples-Default-createUser-0-javascript">JavaScript</a></li>
-                          <!--<li class=""><a href="#examples-Default-createUser-0-angular">Angular</a></li>-->
-                          <li class=""><a href="#examples-Default-createUser-0-csharp">C#</a></li>
-                          <li class=""><a href="#examples-Default-createUser-0-php">PHP</a></li>
-                          <li class=""><a href="#examples-Default-createUser-0-perl">Perl</a></li>
-                          <li class=""><a href="#examples-Default-createUser-0-python">Python</a></li>
+                          <li class="active"><a href="#examples-Default-getUserData-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Default-getUserData-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Default-getUserData-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Default-getUserData-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Default-getUserData-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Default-getUserData-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Default-getUserData-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Default-getUserData-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Default-getUserData-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Default-getUserData-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Default-getUserData-0-python">Python</a></li>
                         </ul>
 
                         <div class="tab-content">
-                          <div class="tab-pane active" id="examples-Default-createUser-0-curl">
-                            <pre class="prettyprint"><code class="language-bsh">curl -X <span style="text-transform: uppercase;">post</span> "http://localhost:12345/create?accessToken="</code></pre>
+                          <div class="tab-pane active" id="examples-Default-getUserData-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X <span style="text-transform: uppercase;">get</span> "http://localhost:12345/data?token=&userId="</code></pre>
                           </div>
-                          <div class="tab-pane" id="examples-Default-createUser-0-java">
+                          <div class="tab-pane" id="examples-Default-getUserData-0-java">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
 import io.swagger.client.auth.*;
 import io.swagger.client.model.*;
@@ -825,46 +935,55 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         
         DefaultApi apiInstance = new DefaultApi();
-        String accessToken = accessToken_example; // String | The user's access token as returned by Facebook.
+        String token = token_example; // String | A login token as returned by the login endpoint.
+        String userId = userId_example; // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
         try {
-            apiInstance.createUser(accessToken);
+            UserData result = apiInstance.getUserData(token, userId);
+            System.out.println(result);
         } catch (ApiException e) {
-            System.err.println("Exception when calling DefaultApi#createUser");
+            System.err.println("Exception when calling DefaultApi#getUserData");
             e.printStackTrace();
         }
     }
 }</code></pre>
                           </div>
 
-                          <div class="tab-pane" id="examples-Default-createUser-0-android">
+                          <div class="tab-pane" id="examples-Default-getUserData-0-android">
                             <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.DefaultApi;
 
 public class DefaultApiExample {
 
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
-        String accessToken = accessToken_example; // String | The user's access token as returned by Facebook.
+        String token = token_example; // String | A login token as returned by the login endpoint.
+        String userId = userId_example; // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
         try {
-            apiInstance.createUser(accessToken);
+            UserData result = apiInstance.getUserData(token, userId);
+            System.out.println(result);
         } catch (ApiException e) {
-            System.err.println("Exception when calling DefaultApi#createUser");
+            System.err.println("Exception when calling DefaultApi#getUserData");
             e.printStackTrace();
         }
     }
 }</code></pre>
                           </div>
   <!--
-  <div class="tab-pane" id="examples-Default-createUser-0-groovy">
+  <div class="tab-pane" id="examples-Default-getUserData-0-groovy">
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
-                            <div class="tab-pane" id="examples-Default-createUser-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">String *accessToken = accessToken_example; // The user's access token as returned by Facebook.
+                            <div class="tab-pane" id="examples-Default-getUserData-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">String *token = token_example; // A login token as returned by the login endpoint. (optional)
+String *userId = userId_example; // The user ID of a user previously registered with the service. Only required if session cookies are not supported. (optional)
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
-// Create a user from a token
-[apiInstance createUserWith:accessToken
-              completionHandler: ^(NSError* error) {
+// Retrieve user's popularity, interests and location data
+[apiInstance getUserDataWith:token
+    userId:userId
+              completionHandler: ^(UserData output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
                             if (error) {
                                 NSLog(@"Error: %@", error);
                             }
@@ -872,29 +991,31 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 </code></pre>
                             </div>
 
-                            <div class="tab-pane" id="examples-Default-createUser-0-javascript">
+                            <div class="tab-pane" id="examples-Default-getUserData-0-javascript">
                               <pre class="prettyprint"><code class="language-js">var GonnaTrackYou = require('gonna_track_you');
 
 var api = new GonnaTrackYou.DefaultApi()
 
-var accessToken = accessToken_example; // {String} The user's access token as returned by Facebook.
-
+var opts = { 
+  'token': token_example, // {String} A login token as returned by the login endpoint.
+  'userId': userId_example // {String} The user ID of a user previously registered with the service. Only required if session cookies are not supported.
+};
 
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
   } else {
-    console.log('API called successfully.');
+    console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.createUser(accessToken, callback);
+api.getUserData(opts, callback);
 </code></pre>
                             </div>
 
-                            <!--<div class="tab-pane" id="examples-Default-createUser-0-angular">
+                            <!--<div class="tab-pane" id="examples-Default-getUserData-0-angular">
               <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
             </div>-->
-                            <div class="tab-pane" id="examples-Default-createUser-0-csharp">
+                            <div class="tab-pane" id="examples-Default-getUserData-0-csharp">
                               <pre class="prettyprint"><code class="language-cs">using System;
 using System.Diagnostics;
 using IO.Swagger.Api;
@@ -903,60 +1024,66 @@ using IO.Swagger.Model;
 
 namespace Example
 {
-    public class createUserExample
+    public class getUserDataExample
     {
         public void main()
         {
             
             var apiInstance = new DefaultApi();
-            var accessToken = accessToken_example;  // String | The user's access token as returned by Facebook.
+            var token = token_example;  // String | A login token as returned by the login endpoint. (optional) 
+            var userId = userId_example;  // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported. (optional) 
 
             try
             {
-                // Create a user from a token
-                apiInstance.createUser(accessToken);
+                // Retrieve user's popularity, interests and location data
+                UserData result = apiInstance.getUserData(token, userId);
+                Debug.WriteLine(result);
             }
             catch (Exception e)
             {
-                Debug.Print("Exception when calling DefaultApi.createUser: " + e.Message );
+                Debug.Print("Exception when calling DefaultApi.getUserData: " + e.Message );
             }
         }
     }
 }</code></pre>
                             </div>
 
-                            <div class="tab-pane" id="examples-Default-createUser-0-php">
+                            <div class="tab-pane" id="examples-Default-getUserData-0-php">
                               <pre class="prettyprint"><code class="language-php"><&#63;php
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\Api\DefaultApi();
-$accessToken = accessToken_example; // String | The user's access token as returned by Facebook.
+$token = token_example; // String | A login token as returned by the login endpoint.
+$userId = userId_example; // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
 
 try {
-    $api_instance->createUser($accessToken);
+    $result = $api_instance->getUserData($token, $userId);
+    print_r($result);
 } catch (Exception $e) {
-    echo 'Exception when calling DefaultApi->createUser: ', $e->getMessage(), PHP_EOL;
+    echo 'Exception when calling DefaultApi->getUserData: ', $e->getMessage(), PHP_EOL;
 }
 ?></code></pre>
                             </div>
 
-                            <div class="tab-pane" id="examples-Default-createUser-0-perl">
+                            <div class="tab-pane" id="examples-Default-getUserData-0-perl">
                               <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
 use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
-my $accessToken = accessToken_example; # String | The user's access token as returned by Facebook.
+my $token = token_example; # String | A login token as returned by the login endpoint.
+my $userId = userId_example; # String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
 
 eval { 
-    $api_instance->createUser(accessToken => $accessToken);
+    my $result = $api_instance->getUserData(token => $token, userId => $userId);
+    print Dumper($result);
 };
 if ($@) {
-    warn "Exception when calling DefaultApi->createUser: $@\n";
+    warn "Exception when calling DefaultApi->getUserData: $@\n";
 }</code></pre>
                             </div>
 
-                            <div class="tab-pane" id="examples-Default-createUser-0-python">
+                            <div class="tab-pane" id="examples-Default-getUserData-0-python">
                               <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
 import time
 import swagger_client
@@ -965,13 +1092,360 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
-accessToken = accessToken_example # String | The user's access token as returned by Facebook.
+token = token_example # String | A login token as returned by the login endpoint. (optional)
+userId = userId_example # String | The user ID of a user previously registered with the service. Only required if session cookies are not supported. (optional)
 
 try: 
-    # Create a user from a token
-    api_instance.createUser(accessToken)
+    # Retrieve user's popularity, interests and location data
+    api_response = api_instance.getUserData(token=token, userId=userId)
+    pprint(api_response)
 except ApiException as e:
-    print("Exception when calling DefaultApi->createUser: %s\n" % e)</code></pre>
+    print("Exception when calling DefaultApi->getUserData: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+
+
+                            <div class="methodsubtabletitle">Query parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">token</td>
+<td>
+
+
+<script>
+												$(document).ready(function() {
+													var schemaWrapper = {
+  "name" : "token",
+  "in" : "query",
+  "description" : "A login token as returned by the login endpoint.",
+  "required" : false,
+  "type" : "string"
+};
+													var schema = schemaWrapper;
+
+
+
+
+													var view = new JSONSchemaView(schema,1);
+													var result = $('#d2e199_getUserData_token');
+													result.empty();
+													result.append(view.render());
+
+
+
+
+
+												});
+												</script>
+												<div id="d2e199_getUserData_token"></div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">userId</td>
+<td>
+
+
+<script>
+												$(document).ready(function() {
+													var schemaWrapper = {
+  "name" : "userId",
+  "in" : "query",
+  "description" : "The user ID of a user previously registered with the service. Only required if session cookies are not supported.",
+  "required" : false,
+  "type" : "string"
+};
+													var schema = schemaWrapper;
+
+
+
+
+													var view = new JSONSchemaView(schema,1);
+													var result = $('#d2e199_getUserData_userId');
+													result.empty();
+													result.append(view.render());
+
+
+
+
+
+												});
+												</script>
+												<div id="d2e199_getUserData_userId"></div>
+</td>
+</tr>
+
+                            </table>
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - Retrieval of some of the user&#39;s data was successful. Data which could not be retrieved due to scope issues will be indicated in the response. </h3>
+
+                              <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a href="#examples-Default-getUserData-schema">Schema</a>
+                                </li>
+
+                              </ul>
+
+                              <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="examples-Default-getUserData-schema">
+                                  <div id='examples-Default-getUserData-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Retrieval of some of the user's data was successful. Data which could not be retrieved due to scope issues will be indicated in the response.",
+  "schema" : {
+    "$ref" : "#/definitions/UserData"
+  },
+  "headers" : {
+    "Access-Control-Allow-Origin" : {
+      "type" : "string"
+    }
+  }
+};
+                                        var schema = schemaWrapper.schema;
+                                        schemaWrapper.definitions = defs;
+                                        //console.log(JSON.stringify(schema))
+                                        JsonRefs.resolveRefs(schemaWrapper, {
+                                            "depth": 3,
+                                            "resolveRemoteRefs": false,
+                                            "resolveFileRefs": false
+                                        }, function(err, resolved, metadata) {
+                                          //console.log(JSON.stringify(resolved));
+                                          var view = new JSONSchemaView(resolved.schema, 3);
+                                          $('#examples-Default-getUserData-schema-data').val(JSON.stringify(resolved.schema));
+                                          var result = $('#examples-Default-getUserData-schema-200');
+                                          result.empty();
+                                          result.append(view.render());
+                                        });
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='examples-Default-getUserData-schema-data' type='hidden' value=''></input>
+                                </div>
+                              </div>
+                            <h3> Status: 401 - The login token provided was invalid. </h3>
+
+                            <h3> Status: 403 - The stored access token has expired - the user will need to login again. </h3>
+
+                            <h3> Status: 404 - The stored access token doesn&#39;t have any of the required scopes and so no data can be provided. </h3>
+
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Default-loginUser">
+                      <article id="api-Default-loginUser-0" data-group="User" data-name="loginUser" data-version="0">
+                        <div class="pull-left">
+                          <h1>loginUser</h1>
+                          <p>Login or create a user from a token</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Takes a user&#39;s access token for Facebook, validates, and extends it through Graph API. It then creates a user locally if needed, or informs the client if they should prompt the user to accept some permission they denied.
+</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/login</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Default-loginUser-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Default-loginUser-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Default-loginUser-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Default-loginUser-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Default-loginUser-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Default-loginUser-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Default-loginUser-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Default-loginUser-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Default-loginUser-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Default-loginUser-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Default-loginUser-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Default-loginUser-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X <span style="text-transform: uppercase;">post</span> "http://localhost:12345/login?accessToken="</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Default-loginUser-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.DefaultApi;
+
+import java.io.File;
+import java.util.*;
+
+public class DefaultApiExample {
+
+    public static void main(String[] args) {
+        
+        DefaultApi apiInstance = new DefaultApi();
+        String accessToken = accessToken_example; // String | The user's short lived access token as returned by Facebook.
+        try {
+            CreateResponse result = apiInstance.loginUser(accessToken);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DefaultApi#loginUser");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Default-loginUser-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.DefaultApi;
+
+public class DefaultApiExample {
+
+    public static void main(String[] args) {
+        DefaultApi apiInstance = new DefaultApi();
+        String accessToken = accessToken_example; // String | The user's short lived access token as returned by Facebook.
+        try {
+            CreateResponse result = apiInstance.loginUser(accessToken);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DefaultApi#loginUser");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Default-loginUser-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Default-loginUser-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">String *accessToken = accessToken_example; // The user's short lived access token as returned by Facebook.
+
+DefaultApi *apiInstance = [[DefaultApi alloc] init];
+
+// Login or create a user from a token
+[apiInstance loginUserWith:accessToken
+              completionHandler: ^(CreateResponse output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-loginUser-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var GonnaTrackYou = require('gonna_track_you');
+
+var api = new GonnaTrackYou.DefaultApi()
+
+var accessToken = accessToken_example; // {String} The user's short lived access token as returned by Facebook.
+
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.loginUser(accessToken, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Default-loginUser-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Default-loginUser-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class loginUserExample
+    {
+        public void main()
+        {
+            
+            var apiInstance = new DefaultApi();
+            var accessToken = accessToken_example;  // String | The user's short lived access token as returned by Facebook.
+
+            try
+            {
+                // Login or create a user from a token
+                CreateResponse result = apiInstance.loginUser(accessToken);
+                Debug.WriteLine(result);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling DefaultApi.loginUser: " + e.Message );
+            }
+        }
+    }
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-loginUser-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\Api\DefaultApi();
+$accessToken = accessToken_example; // String | The user's short lived access token as returned by Facebook.
+
+try {
+    $result = $api_instance->loginUser($accessToken);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling DefaultApi->loginUser: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-loginUser-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::DefaultApi;
+
+my $api_instance = WWW::SwaggerClient::DefaultApi->new();
+my $accessToken = accessToken_example; # String | The user's short lived access token as returned by Facebook.
+
+eval { 
+    my $result = $api_instance->loginUser(accessToken => $accessToken);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling DefaultApi->loginUser: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Default-loginUser-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.DefaultApi()
+accessToken = accessToken_example # String | The user's short lived access token as returned by Facebook.
+
+try: 
+    # Login or create a user from a token
+    api_response = api_instance.loginUser(accessToken)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling DefaultApi->loginUser: %s\n" % e)</code></pre>
                             </div>
                           </div>
 
@@ -996,7 +1470,7 @@ except ApiException as e:
 													var schemaWrapper = {
   "name" : "accessToken",
   "in" : "query",
-  "description" : "The user's access token as returned by Facebook.",
+  "description" : "The user's short lived access token as returned by Facebook.",
   "required" : true,
   "type" : "string"
 };
@@ -1006,7 +1480,7 @@ except ApiException as e:
 
 
 													var view = new JSONSchemaView(schema,1);
-													var result = $('#d2e199_createUser_accessToken');
+													var result = $('#d2e199_loginUser_accessToken');
 													result.empty();
 													result.append(view.render());
 
@@ -1016,34 +1490,32 @@ except ApiException as e:
 
 												});
 												</script>
-												<div id="d2e199_createUser_accessToken"></div>
+												<div id="d2e199_loginUser_accessToken"></div>
 </td>
 </tr>
 
                             </table>
 
                           <h2>Responses</h2>
-                            <h3> Status: 201 - The token passed validation and a new user was created. </h3>
-
-                            <h3> Status: 202 - The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions). </h3>
+                            <h3> Status: 200 - The token passed validation and the user already existed or one was created with all requisite permissions. The access information will be set in a session cookie, but is also returned in the body for devices where cookies aren&#39;t (easily) supported. The denied permissions list will be empty. </h3>
 
                               <ul class="nav nav-tabs nav-tabs-examples" >
                                 <li class="active">
-                                  <a href="#examples-Default-createUser-schema">Schema</a>
+                                  <a href="#examples-Default-loginUser-schema">Schema</a>
                                 </li>
 
                               </ul>
 
                               <div class="tab-content" style='margin-bottom: 10px;'>
-                                <div class="tab-pane active" id="examples-Default-createUser-schema">
-                                  <div id='examples-Default-createUser-schema-202' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                <div class="tab-pane active" id="examples-Default-loginUser-schema">
+                                  <div id='examples-Default-loginUser-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
 
                                     <script>
                                       $(document).ready(function() {
                                         var schemaWrapper = {
-  "description" : "The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions).",
+  "description" : "The token passed validation and the user already existed or one was created with all requisite permissions. The access information will be set in a session cookie, but is also returned in the body for devices where cookies aren't (easily) supported. The denied permissions list will be empty.",
   "schema" : {
-    "$ref" : "#/definitions/DeniedPermissions"
+    "$ref" : "#/definitions/CreateResponse"
   },
   "headers" : {
     "Access-Control-Allow-Origin" : {
@@ -1061,22 +1533,65 @@ except ApiException as e:
                                         }, function(err, resolved, metadata) {
                                           //console.log(JSON.stringify(resolved));
                                           var view = new JSONSchemaView(resolved.schema, 3);
-                                          $('#examples-Default-createUser-schema-data').val(JSON.stringify(resolved.schema));
-                                          var result = $('#examples-Default-createUser-schema-202');
+                                          $('#examples-Default-loginUser-schema-data').val(JSON.stringify(resolved.schema));
+                                          var result = $('#examples-Default-loginUser-schema-200');
                                           result.empty();
                                           result.append(view.render());
                                         });
                                       });
                                     </script>
                                   </div>
-                                  <input id='examples-Default-createUser-schema-data' type='hidden' value=''></input>
+                                  <input id='examples-Default-loginUser-schema-data' type='hidden' value=''></input>
                                 </div>
                               </div>
-                            <h3> Status: 204 - The token passed validation and belongs to an existing user. </h3>
+                            <h3> Status: 202 - The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions). The session cookie is created as in the 200 response. </h3>
 
+                              <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a href="#examples-Default-loginUser-schema">Schema</a>
+                                </li>
+
+                              </ul>
+
+                              <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="examples-Default-loginUser-schema">
+                                  <div id='examples-Default-loginUser-schema-202' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions). The session cookie is created as in the 200 response.",
+  "schema" : {
+    "$ref" : "#/definitions/CreateResponse"
+  },
+  "headers" : {
+    "Access-Control-Allow-Origin" : {
+      "type" : "string"
+    }
+  }
+};
+                                        var schema = schemaWrapper.schema;
+                                        schemaWrapper.definitions = defs;
+                                        //console.log(JSON.stringify(schema))
+                                        JsonRefs.resolveRefs(schemaWrapper, {
+                                            "depth": 3,
+                                            "resolveRemoteRefs": false,
+                                            "resolveFileRefs": false
+                                        }, function(err, resolved, metadata) {
+                                          //console.log(JSON.stringify(resolved));
+                                          var view = new JSONSchemaView(resolved.schema, 3);
+                                          $('#examples-Default-loginUser-schema-data').val(JSON.stringify(resolved.schema));
+                                          var result = $('#examples-Default-loginUser-schema-202');
+                                          result.empty();
+                                          result.append(view.render());
+                                        });
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='examples-Default-loginUser-schema-data' type='hidden' value=''></input>
+                                </div>
+                              </div>
                             <h3> Status: 401 - The token failed validation. </h3>
-
-                            <h3> Status: 500 - Unexpected error occurred. May ignore the Accept header, not include CORS headers, etc. As such, the client should not attempt to inspect the body. </h3>
 
                         </article>
                       </div>
@@ -1094,7 +1609,7 @@ except ApiException as e:
           </div>
           <div id="generator">
             <div class="content">
-              Generated 2017-05-24T20:43:14.843+01:00
+              Generated 2017-05-26T00:28:13.858+01:00
             </div>
           </div>
       </div>
