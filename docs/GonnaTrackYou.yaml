@@ -28,20 +28,17 @@ paths:
           type: string
           description: The user's access token as returned by Facebook.
       responses:
-        201:
-          description: The token passed validation and a new user was created.
+        200:
+          description: The token passed validation and a user was created or already existed. The access information will be set in a cookie, but is also returned in the body for devices where cookies aren't (easily) supported. The denied permissions list will be empty.
+          schema:
+            $ref: '#/definitions/CreateResponse'
           headers:
             Access-Control-Allow-Origin:
               type: string
         202:
           description: The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions).
           schema:
-            $ref: '#/definitions/DeniedPermissions'
-          headers:
-            Access-Control-Allow-Origin:
-              type: string
-        204:
-          description: The token passed validation and belongs to an existing user.
+            $ref: '#/definitions/CreateResponse'
           headers:
             Access-Control-Allow-Origin:
               type: string
@@ -53,14 +50,27 @@ paths:
         500:
           description: Unexpected error occurred. May ignore the Accept header, not include CORS headers, etc. As such, the client should not attempt to inspect the body.
 definitions:
-  DeniedPermissions:
-    description: An array of names of permissions the user denied the app access to.
+  CreateResponse:
+    description: Describes the result of a user creation attempt.
     type: object
     properties:
       data:
+        description: A (potentially empty) list of rejected permissions in generating the token.
         type: array
         items:
           $ref: '#/definitions/Permission'
+      meta:
+        type: object
+        properties:
+          accessInfo:
+            type: object
+            properties:
+              userId:
+                type: string
+                description: The user ID of the authenticated user.
+              accessToken:
+                type: string
+                description: A user's facebook access token (as submitted with the request).
   Permission:
     type: object
     properties:
