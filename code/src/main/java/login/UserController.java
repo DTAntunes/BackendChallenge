@@ -1,5 +1,6 @@
 package login;
 
+import static util.Configuration.FB_CLIENT;
 import static util.JsonRenderer.render;
 
 import java.security.SecureRandom;
@@ -31,10 +32,8 @@ public class UserController {
 	}
 
 	public static final Route LOGIN = (request, response) -> {
-		DefaultFacebookClient fbClient = new DefaultFacebookClient(Configuration.APP_ACCESS_TOKEN,
-		                                                           Configuration.FB_API_VERSION);
 		String shortToken = request.queryParams(ACCESS_TOKEN_NAME);
-		DebugTokenInfo info = fbClient.debugToken(shortToken);
+		DebugTokenInfo info = FB_CLIENT.debugToken(shortToken);
 
 		// Unauthorised response for an invalid token, otherwise check if they
 		// have an account with us already
@@ -42,9 +41,9 @@ public class UserController {
 			response.status(StatusCodes.ClientError.UNAUTHORIZED);
 			return render(null);
 		} else {
-			AccessToken longToken = fbClient.obtainExtendedAccessToken(Configuration.FB_APP_ID,
-			                                                           Configuration.APP_SECRET,
-			                                                           shortToken);
+			AccessToken longToken = FB_CLIENT.obtainExtendedAccessToken(Configuration.FB_APP_ID,
+			                                                            Configuration.APP_SECRET,
+			                                                            shortToken);
 			UserModel user = new UserModel(info.getUserId(), longToken.getAccessToken(),
 			                               info.getScopes());
 			LoginModel login = user.getLoginData(generateToken());

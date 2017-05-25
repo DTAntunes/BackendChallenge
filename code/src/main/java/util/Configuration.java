@@ -12,6 +12,8 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.restfb.DefaultFacebookClient;
+import com.restfb.FacebookClient;
 import com.restfb.Version;
 
 import spark.Spark;
@@ -27,6 +29,7 @@ public class Configuration {
 	public static final String FB_APP_ID = "1005335112935553";
 	public static final String APP_ACCESS_TOKEN, APP_SECRET;
 	public static final AmazonDynamoDB DB_CLIENT;
+	public static final FacebookClient FB_CLIENT;
 
 	static {
 		// Retrieve the secret properties
@@ -72,6 +75,9 @@ public class Configuration {
 		// worked in Graph Explorer, possibly because the application's not
 		// accepted.
 		APP_ACCESS_TOKEN = FB_APP_ID + "|" + APP_SECRET;
+
+		FB_CLIENT = new DefaultFacebookClient(Configuration.APP_ACCESS_TOKEN,
+		                                      Configuration.FB_API_VERSION);
 	}
 
 }

@@ -28,7 +28,17 @@ public class UserModel implements DbPersistable {
 	private static final Table TABLE = new DynamoDB(Configuration.DB_CLIENT).getTable(TABLE_NAME);
 	private static final Gson SERIALISER = new Gson();
 
+	public static UserModel getUser(String userId) {
+		Item item = TABLE.getItem(new PrimaryKey(USER_ID, userId));
+		String accessToken = item.getString(ACCESS_TOKEN);
+		@SuppressWarnings("unchecked")
+		List<String> scopes = SERIALISER.fromJson(item.getString(SCOPES), ArrayList.class);
+
+		return new UserModel(userId, accessToken, scopes);
+	}
+
 	private String userId, accessToken;
+
 	private List<String> scopes;
 
 	public UserModel(String userId, String accessToken) {
@@ -71,9 +81,11 @@ public class UserModel implements DbPersistable {
 		return TABLE.putItem(item);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void retrieveScopes() {
-		Item item = TABLE.getItem(new PrimaryKey(USER_ID, userId));
-		scopes = SERIALISER.fromJson(item.getString(SCOPES), ArrayList.class);
+		scopes = getUser(userId).scopes;
+	}
+
+	public boolean validAccessToken() {
+		return Configuration.FB_CLIENT.debugToken(accessToken).isValid();
 	}
 }
