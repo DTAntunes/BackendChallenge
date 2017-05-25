@@ -2,7 +2,7 @@ package login;
 
 import static util.JsonRenderer.render;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient.DebugTokenInfo;
@@ -17,6 +17,12 @@ public class UserController {
 
 	private static final String TOKEN_NAME = "accessToken";
 	private static final String USER_ID_NAME = "userId";
+	private static final HashSet<String> REQUIRED_SCOPES = new HashSet<>();
+	static {
+		REQUIRED_SCOPES.add("user_likes");
+		REQUIRED_SCOPES.add("user_friends");
+		REQUIRED_SCOPES.add("user_tagged_places");
+	}
 
 	public static final Route CREATE_USER = (request, response) -> {
 		DefaultFacebookClient fbClient = new DefaultFacebookClient(Configuration.APP_ACCESS_TOKEN,
@@ -31,24 +37,26 @@ public class UserController {
 			response.status(StatusCodes.ClientError.UNAUTHORIZED);
 			return render(null);
 		} else {
-			UserModel user = new UserModel(info.getUserId(), accessToken);
+			UserModel user = new UserModel(info.getUserId(), accessToken, info.getScopes());
 
 			request.session().attribute(TOKEN_NAME, user.getAccessToken());
 			request.session().attribute(USER_ID_NAME, user.getUserId());
 
-			ArrayList<PermissionGrant> deniedGrants = user.getDeniedPermissions(fbClient);
+			@SuppressWarnings("unchecked")
+			HashSet<String> deniedPermissions = (HashSet<String>) REQUIRED_SCOPES.clone();
+			deniedPermissions.removeAll(REQUIRED_SCOPES);
 
 			// update the access token
 			user.updateItem();
 
 			// check which of the 200s we should be returning here
-			if (deniedGrants.isEmpty()) {
+			if (deniedPermissions.isEmpty()) {
 				response.status(StatusCodes.Success.OK);
 				return render(new CreateResponse(user));
 			} else {
 				// They didn't accept everything
 				response.status(StatusCodes.Success.ACCEPTED);
-				return render(new CreateResponse(deniedGrants, user));
+				return render(new CreateResponse(deniedPermissions, user));
 			}
 		}
 	};

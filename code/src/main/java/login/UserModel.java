@@ -2,16 +2,17 @@ package login;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
-import com.restfb.FacebookClient;
-import com.restfb.json.JsonArray;
-import com.restfb.json.JsonObject;
+import com.google.gson.Gson;
 
 import util.Configuration;
 
@@ -25,57 +26,62 @@ import util.Configuration;
  */
 public class UserModel {
 
-	public static final String TABLE_NAME = "users", USER_ID = "userId", ACCESS_TOKEN = "token";
+	public static final String TABLE_NAME = "users", USER_ID = "userId", ACCESS_TOKEN = "token",
+	        SCOPES = "scopes";
+	private static final Table TABLE = new DynamoDB(Configuration.DB_CLIENT).getTable(TABLE_NAME);
+	private static final Gson SERIALISER = new Gson();
 
 	private String userId, accessToken;
-	// TODO check if this could/should be a singleton
-	private Table table = new DynamoDB(Configuration.DB_CLIENT).getTable(TABLE_NAME);
+	private List<String> scopes;
 
 	public UserModel(String userId, String accessToken) {
+		this(userId, accessToken, null);
+	}
+
+	public UserModel(String userId, String accessToken, List<String> scopes) {
 		this.userId = userId;
 		this.accessToken = accessToken;
+		this.scopes = scopes;
 	}
 
 	public boolean exists() {
-		return table.query(USER_ID, userId).firstPage().size() > 0;
+		return TABLE.query(USER_ID, userId).firstPage().size() > 0;
 	}
 
 	public String getAccessToken() {
 		return accessToken;
 	}
 
-	public ArrayList<PermissionGrant> getDeniedPermissions(FacebookClient fbClient) {
-		JsonArray permissions = fbClient.fetchObject(userId + "/permissions", JsonObject.class)
-		                                .getJsonArray("data");
-		ArrayList<PermissionGrant> deniedGrants = new ArrayList<>();
-		for (int i = 0; i < permissions.length(); i++) {
-			JsonObject permission = permissions.getJsonObject(i);
-			String permName = permission.getString("permission"),
-			        grant = permission.getString("status");
-			if (!grant.equalsIgnoreCase("granted")) {
-				deniedGrants.add(new PermissionGrant(permName, grant));
-			}
-		}
-		return deniedGrants;
-	}
-
 	public String getUserId() {
 		return userId;
+	}
+
+	public boolean hasScope(String scope) {
+		return scopes.contains(scope);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void retrieveScopes() {
+		Item item = TABLE.getItem(new PrimaryKey(USER_ID, userId));
+		scopes = SERIALISER.fromJson(item.getString(SCOPES), ArrayList.class);
 	}
 
 	public UpdateItemOutcome updateItem() {
 		Map<String, Object> valueMap = new HashMap<>();
 		Map<String, String> nameMap = new HashMap<>();
 		valueMap.put(":" + ACCESS_TOKEN, accessToken);
+		valueMap.put(":" + SCOPES, SERIALISER.toJson(scopes));
 		nameMap.put("#A", ACCESS_TOKEN);
+		nameMap.put("#S", SCOPES);
 
 		UpdateItemSpec spec = new UpdateItemSpec();
 		spec.withNameMap(nameMap);
 		spec.withValueMap(valueMap);
 		spec.withUpdateExpression("SET #A = :" + ACCESS_TOKEN);
+		spec.withUpdateExpression("SET #S = :" + SCOPES);
 		spec.withReturnValues(ReturnValue.ALL_OLD);
 		spec.withPrimaryKey(USER_ID, userId);
 
-		return table.updateItem(spec);
+		return TABLE.updateItem(spec);
 	}
 }
