@@ -1,0 +1,27 @@
+{
+	"AttributeDefinitions": [ 
+		{ 
+			"AttributeName": "token",
+			"AttributeType": "S"
+		},
+		{ 
+			"AttributeName": "userId",
+			"AttributeType": "S"
+		}
+	],
+	"KeySchema": [ 
+		{ 
+			"AttributeName": "token",
+			"KeyType": "HASH"
+		},
+		{ 
+			"AttributeName": "userId",
+			"KeyType": "RANGE"
+		}
+	],
+	"ProvisionedThroughput": {
+        "ReadCapacityUnits": 1,
+        "WriteCapacityUnits": 1
+    },
+	"TableName": "loginTokens"
+}
