@@ -9,7 +9,7 @@ public class StatusCodes {
 
 	public static class Success {
 
-		public static final int CREATED = 201, ACCEPTED = 202, NO_CONTENT = 204;
+		public static final int OK = 200, CREATED = 201, ACCEPTED = 202, NO_CONTENT = 204;
 	}
 
 }

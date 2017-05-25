@@ -40,6 +40,10 @@ public class UserModel {
 		return table.query(USER_ID, userId).firstPage().size() > 0;
 	}
 
+	public String getAccessToken() {
+		return accessToken;
+	}
+
 	public ArrayList<PermissionGrant> getDeniedPermissions(FacebookClient fbClient) {
 		JsonArray permissions = fbClient.fetchObject(userId + "/permissions", JsonObject.class)
 		                                .getJsonArray("data");
@@ -53,6 +57,10 @@ public class UserModel {
 			}
 		}
 		return deniedGrants;
+	}
+
+	public String getUserId() {
+		return userId;
 	}
 
 	public UpdateItemOutcome updateItem() {
