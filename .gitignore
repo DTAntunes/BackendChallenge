@@ -5,3 +5,6 @@ code/target
 docs/swagger-codegen-cli.jar
 code/src/main/java/main
 venv
+db/DynamoDBLocal_lib
+db/DynamoDBLocal.jar
+db/*.db
