@@ -3,3 +3,5 @@ code/src/main/resources/config.properties
 code/target
 .swagger-codegen-ignore
 docs/swagger-codegen-cli.jar
+code/src/main/java/main
+venv
