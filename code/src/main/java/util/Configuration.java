@@ -25,7 +25,7 @@ public class Configuration {
 
 	public static final Version FB_API_VERSION = Version.VERSION_2_9;
 	public static final String FB_APP_ID = "1005335112935553";
-	public static final String APP_ACCESS_TOKEN;
+	public static final String APP_ACCESS_TOKEN, APP_SECRET;
 	public static final AmazonDynamoDB DB_CLIENT;
 
 	static {
@@ -66,11 +66,12 @@ public class Configuration {
 		DB_CLIENT = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(dynamoEndpoint)
 		                                       .withCredentials(credentialsProvider).build();
 
+		APP_SECRET = properties.getProperty("appSecret");
 		// This isn't the ideal way to generate an access token - there's a
 		// proper API call. However, that seemed to generate tokens that only
 		// worked in Graph Explorer, possibly because the application's not
 		// accepted.
-		APP_ACCESS_TOKEN = FB_APP_ID + "|" + properties.getProperty("appSecret");
+		APP_ACCESS_TOKEN = FB_APP_ID + "|" + APP_SECRET;
 	}
 
 }

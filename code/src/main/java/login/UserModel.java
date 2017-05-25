@@ -14,10 +14,10 @@ import util.Configuration;
 import util.DbPersistable;
 
 /**
- * Models a user by user ID and most recently used access token. Does not track
- * denied permissions - I'm assuming FB responses will cover that suitably so I
- * don't need to complicate things by tracking it separately. This has a
- * performance penalty, but I'll ignore it for now.
+ * Models a user by user ID and a long term access token used for requests.
+ * Tracks denied permissions with that token, which is presumably the most
+ * recently denied ones. Permissions can be revoked independent of the app, but
+ * I'm ignoring that for now.
  *
  * @author Dário T A
  */
@@ -47,6 +47,10 @@ public class UserModel implements DbPersistable {
 
 	public String getAccessToken() {
 		return accessToken;
+	}
+
+	public LoginModel getLoginData(String loginToken) {
+		return new LoginModel(userId, loginToken);
 	}
 
 	public String getUserId() {
