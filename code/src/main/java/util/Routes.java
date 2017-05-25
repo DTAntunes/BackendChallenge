@@ -12,7 +12,7 @@ import spark.Spark;
  */
 public enum Routes {
 
-	CREATE_USER(Paths.Login.CREATE, UserController.LOGIN);
+	LOGIN(Paths.LOGIN, UserController.LOGIN), DATA(Paths.GET_DATA, UserController.GET_DATA);
 
 	// These are both immutable, so public final is good enough
 	public final String path;
@@ -21,6 +21,10 @@ public enum Routes {
 	private Routes(String path, Route callback) {
 		this.path = path;
 		this.callback = callback;
+	}
+
+	public void addGet() {
+		Spark.get(path, callback);
 	}
 
 	public void addPost() {

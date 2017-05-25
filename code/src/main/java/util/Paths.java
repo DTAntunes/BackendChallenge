@@ -2,9 +2,6 @@ package util;
 
 public class Paths {
 
-	public static class Login {
-
-		public static final String CREATE = "/login";
-	}
+	public static final String LOGIN = "/login", GET_DATA = "/data";
 
 }

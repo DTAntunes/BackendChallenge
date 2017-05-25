@@ -17,7 +17,7 @@ public class GonnaTrackYou {
 		Spark.port(SPARK_PORT);
 
 		// Set up the routes
-		Routes.CREATE_USER.addPost();
+		Routes.LOGIN.addPost();
 
 		Spark.after((request, response) -> {
 			response.type("application/json");
