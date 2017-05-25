@@ -4,7 +4,7 @@ public class StatusCodes {
 
 	public static class ClientError {
 
-		public static final int UNAUTHORIZED = 401;
+		public static final int UNAUTHORIZED = 401, FORBIDDEN = 403, NOT_FOUND = 404;
 	}
 
 	public static class Success {

@@ -9,13 +9,13 @@ import java.util.Map;
 public class ResourceObject {
 	
 	public final String id, type;
-	public final Map<String, String> attributes;
+	public final Map<String, Object> attributes;
 
 	public ResourceObject(String id, String type) {
 		this(id, type, null);
 	}
 
-	public ResourceObject(String id, String type, Map<String, String> attributes) {
+	public ResourceObject(String id, String type, Map<String, Object> attributes) {
 		this.id = id;
 		this.type = type;
 		this.attributes = attributes;
