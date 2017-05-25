@@ -14,29 +14,29 @@ produces:
 consumes:
   - application/json
 paths:
-  /create:
+  /login:
     post:
       # this had a space in it, but it breaks html2 docs for some reason
-      operationId: CreateUser
-      summary: Create a user from a token
+      operationId: LoginUser
+      summary: Login or create a user from a token
       description: |
-        Takes a user's access token for Facebook and validates it through Graph API. It then creates a user locally if needed, or informs the client if they should prompt the user to accept some permission they denied.
+        Takes a user's access token for Facebook, validates, and extends it through Graph API. It then creates a user locally if needed, or informs the client if they should prompt the user to accept some permission they denied.
       parameters:
         - name: accessToken
           in: query
           required: true
           type: string
-          description: The user's access token as returned by Facebook.
+          description: The user's short lived access token as returned by Facebook.
       responses:
         200:
-          description: The token passed validation and a user was created or already existed. The access information will be set in a session cookie, but is also returned in the body for devices where cookies aren't (easily) supported. The denied permissions list will be empty.
+          description: The token passed validation and the user already existed or one was created with all requisite permissions. The access information will be set in a session cookie, but is also returned in the body for devices where cookies aren't (easily) supported. The denied permissions list will be empty.
           schema:
             $ref: '#/definitions/CreateResponse'
           headers:
             Access-Control-Allow-Origin:
               type: string
         202:
-          description: The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions).
+          description: The token passed validation and a new user was created, but some permissions were denied. These will be listed in the body and the user should be given a description of why these permissions are needed and an option to log in again (hopefully accepting the permissions). The session cookie is created as in the 200 response.
           schema:
             $ref: '#/definitions/CreateResponse'
           headers:
@@ -68,9 +68,9 @@ definitions:
               userId:
                 type: string
                 description: The user ID of the authenticated user.
-              accessToken:
+              token:
                 type: string
-                description: A user's facebook access token (as submitted with the request).
+                description: A login token for this device.
   Permission:
     type: object
     properties:
