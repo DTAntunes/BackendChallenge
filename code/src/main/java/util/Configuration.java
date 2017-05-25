@@ -26,7 +26,6 @@ public class Configuration {
 	public static final Version FB_API_VERSION = Version.VERSION_2_9;
 	public static final String FB_APP_ID = "1005335112935553";
 	public static final String APP_ACCESS_TOKEN;
-	public static final String TABLE_PREFIX = "dario_";
 	public static final AmazonDynamoDB DB_CLIENT;
 
 	static {

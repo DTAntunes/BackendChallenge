@@ -25,8 +25,7 @@ import util.Configuration;
  */
 public class UserModel {
 
-	public static final String TABLE_NAME = Configuration.TABLE_PREFIX + "users",
-	        USER_ID = "userId", ACCESS_TOKEN = "token";
+	public static final String TABLE_NAME = "users", USER_ID = "userId", ACCESS_TOKEN = "token";
 
 	private String userId, accessToken;
 	// TODO check if this could/should be a singleton
