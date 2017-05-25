@@ -52,6 +52,8 @@ public class Configuration {
 			// Spark exception handler to simply print exceptions while testing
 			Spark.exception(Exception.class, (exception, request, response) -> {
 				exception.printStackTrace();
+				response.status(500);
+				response.body("Internal Server Error, check console.");
 			});
 		} else {
 			// Otherwise let's just assume EU_WEST_1 for now
