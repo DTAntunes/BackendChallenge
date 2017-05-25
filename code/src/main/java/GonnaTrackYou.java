@@ -18,6 +18,10 @@ public class GonnaTrackYou {
 
 		// Set up the routes
 		Routes.CREATE_USER.addPost();
+
+		Spark.after((request, response) -> {
+			response.type("application/json");
+		});
 	}
 
 }
