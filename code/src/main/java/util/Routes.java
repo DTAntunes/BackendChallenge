@@ -12,7 +12,7 @@ import spark.Spark;
  */
 public enum Routes {
 
-	CREATE_USER(Paths.Login.CREATE, UserController.CREATE_USER);
+	CREATE_USER(Paths.Login.CREATE, UserController.LOGIN);
 
 	// These are both immutable, so public final is good enough
 	public final String path;
