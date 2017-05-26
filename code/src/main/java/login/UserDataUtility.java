@@ -21,7 +21,7 @@ public class UserDataUtility {
 		String oldestPageName = null;
 		Date oldestPageTime = new Date(Integer.MAX_VALUE);
 
-		SimpleDateFormat formatter = new SimpleDateFormat("YYYY-MM-DD'T'HH:MM:SSZZZZ");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZ");
 		while (musicData.hasNext()) {
 			for (JsonObject p : musicData.next()) {
 				try {
