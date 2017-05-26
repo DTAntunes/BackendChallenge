@@ -13,10 +13,13 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.restfb.DefaultFacebookClient;
+import com.restfb.DefaultWebRequestor;
 import com.restfb.FacebookClient;
 import com.restfb.Version;
+import com.restfb.WebRequestor;
 
 import spark.Spark;
+import spoofing.MusicSpoofWebRequestor;
 
 /**
  * This allows easy swapping of endpoints and configurations etc for testing.
@@ -31,6 +34,7 @@ public class Configuration {
 	public static final AmazonDynamoDB DB_CLIENT;
 	public static final FacebookClient FB_CLIENT;
 	public static final boolean TESTING;
+	public static final WebRequestor WEB_REQUESTOR;
 
 	static {
 		// Retrieve the secret properties
@@ -53,6 +57,9 @@ public class Configuration {
 			credentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("blah",
 			                                                                               "blah"));
 
+			// this lets us spoof music endpoint responses for testing
+			WEB_REQUESTOR = new MusicSpoofWebRequestor();
+
 			// Spark exception handler to simply print exceptions while testing
 			Spark.exception(Exception.class, (exception, request, response) -> {
 				exception.printStackTrace();
@@ -66,6 +73,8 @@ public class Configuration {
 			                                                 .getServiceEndpoint(AmazonDynamoDB.ENDPOINT_PREFIX),
 			                                           liveRegion.getName());
 			credentialsProvider = new DefaultAWSCredentialsProviderChain();
+
+			WEB_REQUESTOR = new DefaultWebRequestor();
 		}
 		DB_CLIENT = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(dynamoEndpoint)
 		                                       .withCredentials(credentialsProvider).build();

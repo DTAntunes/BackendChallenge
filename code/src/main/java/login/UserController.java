@@ -11,9 +11,11 @@ import java.util.Map;
 
 import com.restfb.Connection;
 import com.restfb.DefaultFacebookClient;
+import com.restfb.DefaultJsonMapper;
 import com.restfb.FacebookClient;
 import com.restfb.FacebookClient.AccessToken;
 import com.restfb.FacebookClient.DebugTokenInfo;
+import com.restfb.exception.FacebookOAuthException;
 import com.restfb.json.JsonObject;
 import com.restfb.types.PlaceTag;
 import com.restfb.types.User;
@@ -46,7 +48,19 @@ public class UserController {
 
 	public static final Route LOGIN = (request, response) -> {
 		String shortToken = request.queryParams(ACCESS_TOKEN_NAME);
-		DebugTokenInfo info = FB_CLIENT.debugToken(shortToken);
+		DebugTokenInfo info;
+		try {
+			info = FB_CLIENT.debugToken(shortToken);
+		} catch (FacebookOAuthException e) {
+			// This can happen, for example, with an access token intended for
+			// another app
+			if (Configuration.TESTING) {
+				throw e;
+			} else {
+				response.status(401);
+				return render(null);
+			}
+		}
 
 		// Unauthorised response for an invalid token, otherwise check if they
 		// have an account with us already
@@ -99,6 +113,8 @@ public class UserController {
 
 			Map<String, Object> userData = new HashMap<>();
 			FacebookClient fbClient = new DefaultFacebookClient(user.getAccessToken(),
+			                                                    Configuration.WEB_REQUESTOR,
+			                                                    new DefaultJsonMapper(),
 			                                                    Configuration.FB_API_VERSION);
 			boolean anyData = false;
 
