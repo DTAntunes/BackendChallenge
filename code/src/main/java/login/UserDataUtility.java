@@ -47,7 +47,11 @@ public class UserDataUtility {
 			}
 		}
 
-		return new MusicPreference(oldestPageName, formatter.format(oldestPageTime), false);
+		if (oldestPageName == null) {
+			return new MusicPreference(null, null, false);
+		} else {
+			return new MusicPreference(oldestPageName, formatter.format(oldestPageTime), false);
+		}
 	}
 
 	public static LocationPreference getPreferredLocation(ConnectionIterator<PlaceTag> placeData) {
