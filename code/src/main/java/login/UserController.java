@@ -5,16 +5,23 @@ import static util.JsonRenderer.render;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
+import com.restfb.Connection;
 import com.restfb.DefaultFacebookClient;
+import com.restfb.FacebookClient;
 import com.restfb.FacebookClient.AccessToken;
 import com.restfb.FacebookClient.DebugTokenInfo;
+import com.restfb.types.User;
 
 import login.responseModels.CreateResponse;
+import login.responseModels.Popularity;
 import spark.Request;
 import spark.Route;
 import util.Configuration;
+import util.ResourceObject;
 import util.StatusCodes;
 
 public class UserController {
@@ -24,11 +31,13 @@ public class UserController {
 	private static final String USER_ID_NAME = "userId";
 	private static final SecureRandom ENTROPY_SOURCE = new SecureRandom();
 	private static final int TOKEN_BYTES = 64;
+	private static final String LIKES_SCOPE = "user_likes", FRIENDS_SCOPE = "user_friends",
+	        PLACES_SCOPE = "user_tagged_places";
 	private static final HashSet<String> REQUIRED_SCOPES = new HashSet<>();
 	static {
-		REQUIRED_SCOPES.add("user_likes");
-		REQUIRED_SCOPES.add("user_friends");
-		REQUIRED_SCOPES.add("user_tagged_places");
+		REQUIRED_SCOPES.add(LIKES_SCOPE);
+		REQUIRED_SCOPES.add(FRIENDS_SCOPE);
+		REQUIRED_SCOPES.add(PLACES_SCOPE);
 	}
 
 	public static final Route LOGIN = (request, response) -> {
@@ -73,9 +82,60 @@ public class UserController {
 		}
 	};
 
+	public static final Route GET_DATA = (request, response) -> {
+		LoginModel login = extractAccessDetails(request);
+
+		if (login.isValid()) {
+			UserModel user = UserModel.getUser(login.userId);
+
+			if (!user.validAccessToken()) {
+				response.status(StatusCodes.ClientError.FORBIDDEN);
+				return render(null);
+			}
+
+			Map<String, Object> userData = new HashMap<>();
+			FacebookClient fbClient = new DefaultFacebookClient(user.getAccessToken(),
+			                                                    Configuration.FB_API_VERSION);
+			boolean anyData = false;
+
+			Popularity popularity;
+			if (user.hasScope(FRIENDS_SCOPE)) {
+				anyData = true;
+				Connection<User> fbUsers = fbClient.fetchConnection("me/friends", User.class);
+				popularity = new Popularity(fbUsers.getTotalCount(), false);
+			} else {
+				popularity = new Popularity(null, false);
+			}
+			userData.put("popular", popularity);
+
+			if (!anyData) {
+				response.status(StatusCodes.ClientError.NOT_FOUND);
+				return render(null);
+			}
+
+			return render(new ResourceObject(login.userId, "interests", userData));
+		} else {
+			response.status(StatusCodes.ClientError.UNAUTHORIZED);
+			return render(null);
+		}
+	};
+
+	private static LoginModel extractAccessDetails(Request request) {
+		String token = getRedundantParameter(request, LOGIN_TOKEN_NAME),
+		        userId = getRedundantParameter(request, USER_ID_NAME);
+
+		return new LoginModel(userId, token);
+	}
+
 	private static String generateToken() {
 		byte[] token = new byte[TOKEN_BYTES];
 		ENTROPY_SOURCE.nextBytes(token);
 		return Base64.getEncoder().encodeToString(token);
+	}
+
+	private static final String getRedundantParameter(Request request, String name) {
+		String param = request.session().attribute(name);
+		param = param == null ? request.queryParams(name) : param;
+		return param;
 	}
 }
