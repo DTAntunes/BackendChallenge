@@ -1,5 +1,9 @@
+package base;
+
 import spark.Spark;
+import util.Configuration;
 import util.Routes;
+import util.StatusCodes;
 
 /**
  * Sets up the routes and behaviour for the GonnaTrackYou application, which
@@ -10,11 +14,15 @@ import util.Routes;
  */
 public class GonnaTrackYou {
 
-	private static int SPARK_PORT = 12345;
+	public static final int SPARK_PORT = 12345;
 
 	public static void main(String[] args) {
+		startServer(SPARK_PORT);
+	}
+
+	public static void startServer(int port) {
 		// Set up the webserver, this automatically starts it as well
-		Spark.port(SPARK_PORT);
+		Spark.port(port);
 
 		// Set up the routes
 		Routes.LOGIN.addPost();
@@ -22,6 +30,11 @@ public class GonnaTrackYou {
 
 		Spark.after((request, response) -> {
 			response.type("application/json");
+			// this is needed due to the way the testing HttpClient responds to a 401
+			if (Configuration.TESTING
+			    && response.status() == StatusCodes.ClientError.UNAUTHORIZED) {
+				response.header("WWW-Authenticate", "ReadTheDocs realm=\"none\"");
+			}
 		});
 	}
 
