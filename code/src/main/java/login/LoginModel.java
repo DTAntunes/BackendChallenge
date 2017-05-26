@@ -31,6 +31,9 @@ public class LoginModel implements DbPersistable {
 	}
 
 	public boolean isValid() {
+		if (token == null || userId == null) {
+			return false;
+		}
 		return TABLE.query(TOKEN, token, new RangeKeyCondition(USER_ID).eq(userId)).firstPage()
 		            .size() > 0;
 	}
