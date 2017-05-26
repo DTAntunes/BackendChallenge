@@ -4,19 +4,24 @@ import static util.Configuration.FB_CLIENT;
 import static util.JsonRenderer.render;
 
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 import com.restfb.Connection;
+import com.restfb.ConnectionIterator;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.FacebookClient.AccessToken;
 import com.restfb.FacebookClient.DebugTokenInfo;
+import com.restfb.json.JsonObject;
 import com.restfb.types.User;
 
 import login.responseModels.CreateResponse;
+import login.responseModels.MusicPreference;
 import login.responseModels.Popularity;
 import spark.Request;
 import spark.Route;
@@ -107,6 +112,32 @@ public class UserController {
 				popularity = new Popularity(null, false);
 			}
 			userData.put("popular", popularity);
+
+			MusicPreference music;
+			if (user.hasScope(LIKES_SCOPE)) {
+				anyData = true;
+				Connection<JsonObject> musicLikes = fbClient.fetchConnection("me/music",
+				                                                            JsonObject.class);
+				ConnectionIterator<JsonObject> musicIter = musicLikes.iterator();
+				String oldestPageName = null;
+				Date oldestPageTime = new Date(Integer.MAX_VALUE);
+
+				SimpleDateFormat formatter = new SimpleDateFormat("YYYY-MM-DD'T'HH:MM:SSZZZZ");
+				while (musicIter.hasNext()) {
+					for (JsonObject p : musicIter.next()) {
+						Date createdTime = formatter.parse(p.getString("created_time"));
+						if (oldestPageName == null || createdTime.before(oldestPageTime)) {
+							oldestPageName = p.getString("name");
+							oldestPageTime = createdTime;
+						}
+					}
+				}
+
+				music = new MusicPreference(oldestPageName, formatter.format(oldestPageTime), false);
+			} else {
+				music = new MusicPreference(null, null, true);
+			}
+			userData.put("favouriteMusic", music);
 
 			if (!anyData) {
 				response.status(StatusCodes.ClientError.NOT_FOUND);
