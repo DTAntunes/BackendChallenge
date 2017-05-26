@@ -18,9 +18,12 @@ import com.restfb.FacebookClient;
 import com.restfb.FacebookClient.AccessToken;
 import com.restfb.FacebookClient.DebugTokenInfo;
 import com.restfb.json.JsonObject;
+import com.restfb.types.Location;
+import com.restfb.types.PlaceTag;
 import com.restfb.types.User;
 
 import login.responseModels.CreateResponse;
+import login.responseModels.LocationPreference;
 import login.responseModels.MusicPreference;
 import login.responseModels.Popularity;
 import spark.Request;
@@ -138,6 +141,44 @@ public class UserController {
 				music = new MusicPreference(null, null, true);
 			}
 			userData.put("favouriteMusic", music);
+
+			LocationPreference location;
+			if (user.hasScope(PLACES_SCOPE)) {
+				anyData = true;
+				ConnectionIterator<PlaceTag> places = fbClient.fetchConnection("me/tagged_places",
+				                                                               PlaceTag.class)
+				                                              .iterator();
+				HashMap<String, Integer> placeCount = new HashMap<>();
+				String maxPlace = null;
+				int maxCount = 0;
+
+				while (places.hasNext()) {
+					for (PlaceTag place : places.next()) {
+						Location loc = place.getPlace().getLocation();
+						String city;
+						if (loc != null && (city = qualifyName(loc)) != null) {
+							Integer currentCount;
+							if ((currentCount = placeCount.get(city)) == null) {
+								currentCount = 1;
+							} else {
+								currentCount++;
+							}
+
+							if (currentCount > maxCount) {
+								maxPlace = city;
+								maxCount = currentCount;
+							}
+
+							placeCount.put(city, currentCount);
+						}
+					}
+				}
+
+				location = new LocationPreference(maxPlace, maxCount, false);
+			} else {
+				location = new LocationPreference(null, null, true);
+			}
+			userData.put("favouritePlace", location);
 
 			if (!anyData) {
 				response.status(StatusCodes.ClientError.NOT_FOUND);
