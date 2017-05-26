@@ -30,6 +30,7 @@ public class Configuration {
 	public static final String APP_ACCESS_TOKEN, APP_SECRET;
 	public static final AmazonDynamoDB DB_CLIENT;
 	public static final FacebookClient FB_CLIENT;
+	public static final boolean TESTING;
 
 	static {
 		// Retrieve the secret properties
@@ -46,7 +47,7 @@ public class Configuration {
 		EndpointConfiguration dynamoEndpoint;
 		AWSCredentialsProvider credentialsProvider;
 		// Set up things as needed for testing/not
-		if (Boolean.parseBoolean(properties.getProperty("testing"))) {
+		if (TESTING = Boolean.parseBoolean(properties.getProperty("testing"))) {
 			dynamoEndpoint = new EndpointConfiguration("http://localhost:8765",
 			                                           Regions.EU_WEST_1.getName());
 			credentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials("blah",

@@ -4,21 +4,17 @@ import static util.Configuration.FB_CLIENT;
 import static util.JsonRenderer.render;
 
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
 import java.util.Base64;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 import com.restfb.Connection;
-import com.restfb.ConnectionIterator;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.FacebookClient.AccessToken;
 import com.restfb.FacebookClient.DebugTokenInfo;
 import com.restfb.json.JsonObject;
-import com.restfb.types.Location;
 import com.restfb.types.PlaceTag;
 import com.restfb.types.User;
 
@@ -119,24 +115,9 @@ public class UserController {
 			MusicPreference music;
 			if (user.hasScope(LIKES_SCOPE)) {
 				anyData = true;
-				Connection<JsonObject> musicLikes = fbClient.fetchConnection("me/music",
-				                                                            JsonObject.class);
-				ConnectionIterator<JsonObject> musicIter = musicLikes.iterator();
-				String oldestPageName = null;
-				Date oldestPageTime = new Date(Integer.MAX_VALUE);
-
-				SimpleDateFormat formatter = new SimpleDateFormat("YYYY-MM-DD'T'HH:MM:SSZZZZ");
-				while (musicIter.hasNext()) {
-					for (JsonObject p : musicIter.next()) {
-						Date createdTime = formatter.parse(p.getString("created_time"));
-						if (oldestPageName == null || createdTime.before(oldestPageTime)) {
-							oldestPageName = p.getString("name");
-							oldestPageTime = createdTime;
-						}
-					}
-				}
-
-				music = new MusicPreference(oldestPageName, formatter.format(oldestPageTime), false);
+				music = UserDataUtility.getPreferredBand(fbClient.fetchConnection("me/music",
+				                                                                  JsonObject.class)
+				                                                 .iterator());
 			} else {
 				music = new MusicPreference(null, null, true);
 			}
@@ -145,36 +126,9 @@ public class UserController {
 			LocationPreference location;
 			if (user.hasScope(PLACES_SCOPE)) {
 				anyData = true;
-				ConnectionIterator<PlaceTag> places = fbClient.fetchConnection("me/tagged_places",
-				                                                               PlaceTag.class)
-				                                              .iterator();
-				HashMap<String, Integer> placeCount = new HashMap<>();
-				String maxPlace = null;
-				int maxCount = 0;
-
-				while (places.hasNext()) {
-					for (PlaceTag place : places.next()) {
-						Location loc = place.getPlace().getLocation();
-						String city;
-						if (loc != null && (city = qualifyName(loc)) != null) {
-							Integer currentCount;
-							if ((currentCount = placeCount.get(city)) == null) {
-								currentCount = 1;
-							} else {
-								currentCount++;
-							}
-
-							if (currentCount > maxCount) {
-								maxPlace = city;
-								maxCount = currentCount;
-							}
-
-							placeCount.put(city, currentCount);
-						}
-					}
-				}
-
-				location = new LocationPreference(maxPlace, maxCount, false);
+				location = UserDataUtility.getPreferredLocation(fbClient.fetchConnection("me/tagged_places",
+				                                                                         PlaceTag.class)
+				                                                        .iterator());
 			} else {
 				location = new LocationPreference(null, null, true);
 			}
