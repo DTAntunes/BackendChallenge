@@ -11,8 +11,8 @@ import util.DbPersistable;
 
 public class LoginModel implements DbPersistable {
 
-	private static final Table TABLE = new DynamoDB(Configuration.DB_CLIENT).getTable("loginTokens");
-	private static final String USER_ID = "userId", TOKEN = "token";
+	public static final String TABLE_NAME = "loginTokens", USER_ID = "userId", TOKEN = "token";;
+	private static final Table TABLE = new DynamoDB(Configuration.DB_CLIENT).getTable(TABLE_NAME);
 
 	public final String userId;
 	public final String token;

@@ -32,12 +32,11 @@ import util.StatusCodes;
 
 public class UserController {
 
-	private static final String LOGIN_TOKEN_NAME = "token";
+	public static final String LOGIN_TOKEN_NAME = "token", USER_ID_NAME = "userId";;
 	private static final String ACCESS_TOKEN_NAME = "accessToken";
-	private static final String USER_ID_NAME = "userId";
 	private static final SecureRandom ENTROPY_SOURCE = new SecureRandom();
 	private static final int TOKEN_BYTES = 64;
-	private static final String LIKES_SCOPE = "user_likes", FRIENDS_SCOPE = "user_friends",
+	public static final String LIKES_SCOPE = "user_likes", FRIENDS_SCOPE = "user_friends",
 	        PLACES_SCOPE = "user_tagged_places";
 	private static final HashSet<String> REQUIRED_SCOPES = new HashSet<>();
 	static {
