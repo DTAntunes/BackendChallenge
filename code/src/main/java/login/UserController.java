@@ -47,6 +47,12 @@ public class UserController {
 
 	public static final Route LOGIN = (request, response) -> {
 		String shortToken = request.queryParams(ACCESS_TOKEN_NAME);
+
+		if (shortToken == null) {
+			response.status(401);
+			return render(null);
+		}
+
 		DebugTokenInfo info;
 		try {
 			info = FB_CLIENT.debugToken(shortToken);
@@ -81,21 +87,24 @@ public class UserController {
 			HashSet<String> deniedPermissions = (HashSet<String>) REQUIRED_SCOPES.clone();
 			deniedPermissions.removeAll(info.getScopes());
 
-			// update the access token and scopes
-			user.putItem();
 			// store the login token for future request validation
 			login.putItem();
 
+			CreateResponse result;
 			// check which of the 200s we should be returning here as FB says
 			// you should only re-request denied permissions once
-			if (user.exists()) {
+			if (user.exists() || deniedPermissions.isEmpty()) {
 				response.status(StatusCodes.Success.OK);
-				return render(new CreateResponse(login));
+				result = new CreateResponse(login);
 			} else {
 				// They didn't accept everything on first login
 				response.status(StatusCodes.Success.ACCEPTED);
-				return render(new CreateResponse(deniedPermissions, login));
+				result = new CreateResponse(deniedPermissions, login);
 			}
+
+			// update the access token and scopes
+			user.putItem();
+			return render(result);
 		}
 	};
 
@@ -105,7 +114,7 @@ public class UserController {
 		if (login.isValid()) {
 			UserModel user = UserModel.getUser(login.userId);
 
-			if (!user.validAccessToken()) {
+			if (user == null || !user.validAccessToken()) {
 				response.status(StatusCodes.ClientError.FORBIDDEN);
 				return render(null);
 			}

@@ -30,11 +30,15 @@ public class UserModel implements DbPersistable {
 
 	public static UserModel getUser(String userId) {
 		Item item = TABLE.getItem(new PrimaryKey(USER_ID, userId));
-		String accessToken = item.getString(ACCESS_TOKEN);
-		@SuppressWarnings("unchecked")
-		List<String> scopes = SERIALISER.fromJson(item.getString(SCOPES), ArrayList.class);
+		if (item == null) {
+			return null;
+		} else {
+			String accessToken = item.getString(ACCESS_TOKEN);
+			@SuppressWarnings("unchecked")
+			List<String> scopes = SERIALISER.fromJson(item.getString(SCOPES), ArrayList.class);
 
-		return new UserModel(userId, accessToken, scopes);
+			return new UserModel(userId, accessToken, scopes);
+		}
 	}
 
 	private String userId, accessToken;
@@ -82,7 +86,10 @@ public class UserModel implements DbPersistable {
 	}
 
 	public void retrieveScopes() {
-		scopes = getUser(userId).scopes;
+		UserModel user = getUser(userId);
+		if (user != null) {
+			scopes = user.scopes;
+		}
 	}
 
 	public boolean validAccessToken() {
