@@ -155,7 +155,7 @@ public class UserController {
 				return render(null);
 			}
 
-			return render(new ResourceObject(login.userId, "interests", userData));
+			return render(wrap(new ResourceObject(login.userId, "interests", userData)));
 		} else {
 			response.status(StatusCodes.ClientError.UNAUTHORIZED);
 			return render(null);
@@ -179,5 +179,11 @@ public class UserController {
 		String param = request.session().attribute(name);
 		param = param == null ? request.queryParams(name) : param;
 		return param;
+	}
+
+	private static Map<String, Object> wrap(ResourceObject res) {
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("data", res);
+		return map;
 	}
 }
