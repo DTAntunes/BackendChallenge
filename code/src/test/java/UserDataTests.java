@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -24,6 +25,7 @@ import com.restfb.types.TestUser;
 
 import base.GonnaTrackYou;
 import login.LoginModel;
+import login.UserModel;
 import login.responseModels.LocationPreference;
 import login.responseModels.MusicPreference;
 import login.responseModels.Popularity;
@@ -35,6 +37,8 @@ import util.StatusCodes;
 
 public class UserDataTests {
 
+	private static final String DATA_URL = TestUtility.BASE_URL + Paths.GET_DATA;
+	private static final String LOGIN_URL = TestUtility.BASE_URL + Paths.LOGIN;
 	private static HashMap<String, ResourceObject> responses = new HashMap<>();
 	private static HttpClient client;
 	private static Gson deserialiser = new Gson();
@@ -100,9 +104,6 @@ public class UserDataTests {
 		}
 
 		scan.close();
-
-		client = new HttpClient();
-		client.start();
 	}
 
 	public void checkUser(TestUser user) throws ParseException {
@@ -161,13 +162,83 @@ public class UserDataTests {
 		checkLocation(user.getId(), expectedPlace, actualPlace);
 	}
 
+	@Before
+	public void prepareClient() throws Exception {
+		client = new HttpClient();
+		client.start();
+	}
+
 	@Test
 	public void testFailUserData() {
-		String userId = "10017585221011";
+		String userId = "108412059751071";
+
 		ConnectionIterator<TestUser> users = Configuration.FB_CLIENT.fetchConnection(Configuration.FB_APP_ID
 		                                                                             + "/accounts/test-users",
 		                                                                             TestUser.class)
 		                                                            .iterator();
+		TestUser user = null;
+
+		while (users.hasNext() && user == null) {
+			for (TestUser u : users.next()) {
+				if (u.getId().equals(userId)) {
+					user = u;
+					break;
+				}
+			}
+		}
+
+		if (user == null) {
+			fail("Test user was not found");
+		}
+
+		ContentResponse res;
+		try {
+			res = client.GET(DATA_URL);
+			assertEquals("No login token or user ID should be unauthorised",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+
+			res = client.GET(DATA_URL + "?userId=3451231241245");
+			assertEquals("Invalid user ID and no login token should be unauthorised",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+
+			res = client.GET(DATA_URL + "?token=oeuidhtAOEAOEeuihtcgypukxbhgfyu");
+			assertEquals("Invalid login token and no user ID should be unauthorised",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+
+			res = client.GET(DATA_URL + "?userId=123412354546ih&token=1244xxxy2j8m5ekbi98");
+			assertEquals("Invalid login token and user ID should be unauthorised",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+
+			res = client.GET(DATA_URL + "?userId=" + userId + "&token=aoprccrhyrcihy");
+			assertEquals("Valid user ID and invalid login token should be unauthorised",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+
+			// get login token, then 404 since this user has no data
+			res = client.POST(LOGIN_URL + "?userId=" + userId + "&accessToken="
+			                  + user.getAccessToken())
+			            .send();
+			LoginModel login = deserialiser.fromJson(res.getContentAsString(), LoginModel.class);
+
+			String accessUrl = DATA_URL + "?userId=" + userId + "&token=" + login.token;
+			res = client.GET(accessUrl);
+			assertEquals("User has no scopes, should be not found",
+			             StatusCodes.ClientError.NOT_FOUND, res.getStatus());
+
+			UserModel userAccess = UserModel.getUser(userId);
+			UserModel invalidated = new UserModel(userId,
+			                                      TestUtility.invalidateAccessToken(userAccess.getAccessToken()),
+			                                      userAccess.getScopes());
+			invalidated.putItem();
+
+			// try again with the now invalidated access token
+			res = client.GET(accessUrl);
+			assertEquals("Invalidated access token should be forbidden",
+			             StatusCodes.ClientError.FORBIDDEN, res.getStatus());
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			e.printStackTrace();
+			fail("See exception: " + e.getMessage());
+		}
+
 	}
 
 	@Test

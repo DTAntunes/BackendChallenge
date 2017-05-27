@@ -95,4 +95,10 @@ public class UserModel implements DbPersistable {
 	public boolean validAccessToken() {
 		return Configuration.FB_CLIENT.debugToken(accessToken).isValid();
 	}
+
+	public List<String> getScopes() {
+		List<String> scopeCopy = new ArrayList<>();
+		scopeCopy.addAll(scopes);
+		return scopeCopy;
+	}
 }
