@@ -1,6 +1,7 @@
 package spoofing;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -22,13 +23,16 @@ public class MusicSpoofWebRequestor implements WebRequestor {
 	private static final HashMap<String, String> RESPONSES_BY_ID = new HashMap<>();
 	static {
 		ClassLoader loader = MusicSpoofWebRequestor.class.getClassLoader();
-		Scanner scan = new Scanner(loader.getResourceAsStream("musicSpoofing"));
-		while (scan.hasNextLine()) {
-			String id = scan.nextLine();
-			String response = scan.nextLine();
-			RESPONSES_BY_ID.put(id, response);
+		InputStream input = loader.getResourceAsStream("musicSpoofing");
+		if (input != null) {
+			Scanner scan = new Scanner(input);
+			while (scan.hasNextLine()) {
+				String id = scan.nextLine();
+				String response = scan.nextLine();
+				RESPONSES_BY_ID.put(id, response);
+			}
+			scan.close();
 		}
-		scan.close();
 	}
 
 	private static String extractAccessToken(String url) {
