@@ -144,7 +144,7 @@ definitions:
                     description: Name of the user's preferred band. The preferred band is defined as the band that the user has liked for the longest. This is due to technical limitations (there doesn't seem to be a way to find interactions between a user and a page, and this would be very intensive to do for all pages even batched) and following the reasoning that whatever page they've been following longest is what they like most.
                   likeDate:
                     type: string
-                    description: The date at which the page was liked, in the same format as Facebook uses - "YYYY:MM:DD'T'HH:MM:SSZZZZ".
+                    description: The date at which the page was liked, in the same format as Facebook uses - "YYYY:MM:DD'T'HH:MM:SS±ZZZZ".
               favouritePlace:
                 type: object
                 properties:
