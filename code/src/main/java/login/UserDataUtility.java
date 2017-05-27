@@ -81,7 +81,11 @@ public class UserDataUtility {
 			}
 		}
 
-		return new LocationPreference(maxPlace, maxCount, false);
+		if (maxPlace == null) {
+			return new LocationPreference(null, null, false);
+		} else {
+			return new LocationPreference(maxPlace, maxCount, false);
+		}
 	}
 
 	private static String qualifyName(Location loc) {
