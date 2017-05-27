@@ -42,6 +42,11 @@ public class LoginTests {
 	private static final String LOGIN_URL = TestUtility.BASE_URL + Paths.LOGIN;
 	private static final Gson DESERIALISER = new Gson();
 
+	private static User allScopes;
+
+	private static User missingFriends;
+	private static HttpClient client;
+
 	private static void confirmOkResponse(ContentResponse res, String userId) {
 		CreateResponse info = DESERIALISER.fromJson(new String(res.getContent()),
 		                                            CreateResponse.class);
@@ -52,11 +57,6 @@ public class LoginTests {
 		              UserModel.getUser(userId));
 	}
 
-	private static User allScopes;
-	private static User missingFriends;
-
-	private static HttpClient client;
-	
 	@BeforeClass
 	public static void setUpServer() throws Exception {
 		GonnaTrackYou.startServer(TestUtility.TEST_SPARK_PORT);
@@ -90,25 +90,26 @@ public class LoginTests {
 	@Test
 	public void testLoginFailures() {
 		try {
-		ContentResponse res = client.POST(LOGIN_URL).send();
-		assertEquals("Checking that no token submitted leads to auth error",
-		             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+			ContentResponse res = client.POST(LOGIN_URL).send();
+			assertEquals("Checking that no token submitted leads to auth error",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
 
-		String withTokenPart = LOGIN_URL + "?accessToken=";
-		res = client.POST(withTokenPart + invalidateAccessToken(allScopes.accessToken))
-		            .send();
-		assertEquals("Checking that invalid access token leads to auth error",
-		             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+			String withTokenPart = LOGIN_URL + "?accessToken=";
+			res = client.POST(withTokenPart
+			                  + TestUtility.invalidateAccessToken(allScopes.accessToken))
+			            .send();
+			assertEquals("Checking that invalid access token leads to auth error",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
 
-		res = client.POST(withTokenPart + "CeciNestPasUnAccessToken").send();
-		assertEquals("Checking that arbitrary access token leads to auth error",
-		             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
+			res = client.POST(withTokenPart + "CeciNestPasUnAccessToken").send();
+			assertEquals("Checking that arbitrary access token leads to auth error",
+			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			e.printStackTrace();
 			fail("See exception.");
 		}
 	}
-	
+
 	@Test
 	public void testLoginSuccesses() {
 		try {
