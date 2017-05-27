@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -15,11 +16,15 @@ import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.restfb.DefaultJsonMapper;
 import com.restfb.FacebookClient;
+import com.restfb.JsonMapper;
 import com.restfb.Parameter;
+import com.restfb.batch.BatchRequest;
+import com.restfb.batch.BatchRequest.BatchRequestBuilder;
+import com.restfb.batch.BatchResponse;
 import com.restfb.types.TestUser;
 
-import base.GonnaTrackYou;
 import login.UserController;
 import login.UserModel;
 import login.responseModels.CreateResponse;
@@ -59,32 +64,51 @@ public class TestLogin {
 
 	@BeforeClass
 	public static void setUpServer() throws Exception {
+		System.out.println("\nThis test is going to take a while (~30s) - creating and deleting test users is slow.\n");
 		TestUtility.startServer();
 		FacebookClient fbClient = Configuration.FB_CLIENT;
 
 		String permissions = UserController.PLACES_SCOPE + "," + UserController.LIKES_SCOPE + ","
 		                     + UserController.FRIENDS_SCOPE;
-		TestUser noFriends = fbClient.publish(Configuration.FB_APP_ID + "/accounts/test-users",
-		                                      TestUser.class, Parameter.with("installed", "true"),
-		                                      Parameter.with("permissions", permissions));
-		// this is being deleted separately since omitting it in the parameters
-		// seemed to have no effect
-		fbClient.deleteObject(noFriends.getId() + "/permissions/" + UserController.FRIENDS_SCOPE);
-		TestUser allUser = fbClient.publish(Configuration.FB_APP_ID + "/accounts/test-users",
-		                                    TestUser.class, Parameter.with("installed", "true"),
-		                                    Parameter.with("permissions", permissions));
-		allScopes = new User(allUser.getAccessToken(), allUser.getId());
-		missingFriends = new User(noFriends.getAccessToken(), noFriends.getId());
+		String testUserPath = Configuration.FB_APP_ID + "/accounts/test-users";
+		Parameter[] parameters = new Parameter[] { Parameter.with("installed", "true"),
+		                                           Parameter.with("permissions", permissions) };
+		BatchRequest noFriends = new BatchRequestBuilder(testUserPath).method("POST")
+		                                                              .parameters(parameters)
+		                                                              .name("first").build();
+		BatchRequest allUser = new BatchRequestBuilder(testUserPath).method("POST")
+		                                                            .parameters(parameters).build();
+
+		JsonMapper mapper = new DefaultJsonMapper();
+		List<BatchResponse> response = fbClient.executeBatch(noFriends, allUser);
+		BatchResponse noFriendResponse = response.get(0);
+		if (noFriendResponse.getCode() != 200) {
+			fail("Couldn't create no friend test user");
+		} else {
+			TestUser user = mapper.toJavaObject(noFriendResponse.getBody(), TestUser.class);
+			missingFriends = new User(user.getAccessToken(), user.getId());
+			// this didn't want to work with the batch request for some reason
+			fbClient.deleteObject(user.getId() + "/permissions/" + UserController.FRIENDS_SCOPE);
+		}
+
+		BatchResponse allScopeResponse = response.get(1);
+		if (allScopeResponse.getCode() != 200) {
+			fail("Couldn't create all scopes test user");
+		} else {
+			TestUser user = mapper.toJavaObject(allScopeResponse.getBody(), TestUser.class);
+			allScopes = new User(user.getAccessToken(), user.getId());
+		}
+
 		client = new HttpClient();
 		client.start();
 	}
 
 	@AfterClass
 	public static void tearDown() {
-		Configuration.FB_CLIENT.deleteObject(allScopes.userId);
-		Configuration.FB_CLIENT.deleteObject(missingFriends.userId);
-
-		// tidy up db
+		BatchRequest deleteFriends = new BatchRequestBuilder(missingFriends.userId).method("DELETE")
+		                                                                           .build();
+		BatchRequest deleteAll = new BatchRequestBuilder(allScopes.userId).method("DELETE").build();
+		Configuration.FB_CLIENT.executeBatch(deleteAll, deleteFriends);
 	}
 
 	@Test
@@ -137,6 +161,7 @@ public class TestLogin {
 			res = client.POST(noFriendsLogin).send();
 			assertEquals("Successful login missing a scope leads to Accepted",
 			             StatusCodes.Success.ACCEPTED, res.getStatus());
+
 			CreateResponse info = DESERIALISER.fromJson(new String(res.getContent()),
 			                                            CreateResponse.class);
 			assertEquals("Should be missing one permission for friends", 1, info.data.length);
