@@ -132,7 +132,7 @@ public class UserController {
 				Connection<User> fbUsers = fbClient.fetchConnection("me/friends", User.class);
 				popularity = new Popularity(fbUsers.getTotalCount(), false);
 			} else {
-				popularity = new Popularity(null, false);
+				popularity = new Popularity(null, true);
 			}
 			userData.put("popular", popularity);
 
