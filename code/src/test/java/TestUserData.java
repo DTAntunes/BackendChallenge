@@ -35,7 +35,7 @@ import util.Paths;
 import util.ResourceObject;
 import util.StatusCodes;
 
-public class UserDataTests {
+public class TestUserData {
 
 	private static final String DATA_URL = TestUtility.BASE_URL + Paths.GET_DATA;
 	private static final String LOGIN_URL = TestUtility.BASE_URL + Paths.LOGIN;
@@ -87,7 +87,7 @@ public class UserDataTests {
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		GonnaTrackYou.startServer(TestUtility.TEST_SPARK_PORT);
+		TestUtility.startServer();
 
 		// these test users are set up manually beforehand
 		ClassLoader loader = MusicSpoofWebRequestor.class.getClassLoader();

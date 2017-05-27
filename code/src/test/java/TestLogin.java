@@ -27,7 +27,7 @@ import util.Configuration;
 import util.Paths;
 import util.StatusCodes;
 
-public class LoginTests {
+public class TestLogin {
 
 	private static class User {
 
@@ -59,7 +59,7 @@ public class LoginTests {
 
 	@BeforeClass
 	public static void setUpServer() throws Exception {
-		GonnaTrackYou.startServer(TestUtility.TEST_SPARK_PORT);
+		TestUtility.startServer();
 		FacebookClient fbClient = Configuration.FB_CLIENT;
 
 		String permissions = UserController.PLACES_SCOPE + "," + UserController.LIKES_SCOPE + ","
