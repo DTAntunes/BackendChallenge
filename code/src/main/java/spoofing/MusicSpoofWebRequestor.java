@@ -32,7 +32,7 @@ public class MusicSpoofWebRequestor implements WebRequestor {
 	}
 
 	private static String extractAccessToken(String url) {
-		for (NameValuePair pair : URLEncodedUtils.parse(url, Charset.defaultCharset())) {
+		for (NameValuePair pair : URLEncodedUtils.parse(url.substring(url.indexOf('?') + 1), Charset.defaultCharset())) {
 			if (pair.getName().equalsIgnoreCase("access_token")) {
 				return pair.getValue();
 			}
