@@ -935,7 +935,7 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         
         DefaultApi apiInstance = new DefaultApi();
-        String token = token_example; // String | A login token as returned by the login endpoint.
+        String token = token_example; // String | A login token as returned by the login endpoint. Only required if session cookies are not supported.
         String userId = userId_example; // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
         try {
             UserData result = apiInstance.getUserData(token, userId);
@@ -955,7 +955,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
-        String token = token_example; // String | A login token as returned by the login endpoint.
+        String token = token_example; // String | A login token as returned by the login endpoint. Only required if session cookies are not supported.
         String userId = userId_example; // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
         try {
             UserData result = apiInstance.getUserData(token, userId);
@@ -972,7 +972,7 @@ public class DefaultApiExample {
   <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
   </div> -->
                             <div class="tab-pane" id="examples-Default-getUserData-0-objc">
-                              <pre class="prettyprint"><code class="language-cpp">String *token = token_example; // A login token as returned by the login endpoint. (optional)
+                              <pre class="prettyprint"><code class="language-cpp">String *token = token_example; // A login token as returned by the login endpoint. Only required if session cookies are not supported. (optional)
 String *userId = userId_example; // The user ID of a user previously registered with the service. Only required if session cookies are not supported. (optional)
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
@@ -997,7 +997,7 @@ DefaultApi *apiInstance = [[DefaultApi alloc] init];
 var api = new GonnaTrackYou.DefaultApi()
 
 var opts = { 
-  'token': token_example, // {String} A login token as returned by the login endpoint.
+  'token': token_example, // {String} A login token as returned by the login endpoint. Only required if session cookies are not supported.
   'userId': userId_example // {String} The user ID of a user previously registered with the service. Only required if session cookies are not supported.
 };
 
@@ -1030,7 +1030,7 @@ namespace Example
         {
             
             var apiInstance = new DefaultApi();
-            var token = token_example;  // String | A login token as returned by the login endpoint. (optional) 
+            var token = token_example;  // String | A login token as returned by the login endpoint. Only required if session cookies are not supported. (optional) 
             var userId = userId_example;  // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported. (optional) 
 
             try
@@ -1053,7 +1053,7 @@ namespace Example
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $api_instance = new Swagger\Client\Api\DefaultApi();
-$token = token_example; // String | A login token as returned by the login endpoint.
+$token = token_example; // String | A login token as returned by the login endpoint. Only required if session cookies are not supported.
 $userId = userId_example; // String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
 
 try {
@@ -1071,7 +1071,7 @@ use WWW::SwaggerClient::Configuration;
 use WWW::SwaggerClient::DefaultApi;
 
 my $api_instance = WWW::SwaggerClient::DefaultApi->new();
-my $token = token_example; # String | A login token as returned by the login endpoint.
+my $token = token_example; # String | A login token as returned by the login endpoint. Only required if session cookies are not supported.
 my $userId = userId_example; # String | The user ID of a user previously registered with the service. Only required if session cookies are not supported.
 
 eval { 
@@ -1092,7 +1092,7 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.DefaultApi()
-token = token_example # String | A login token as returned by the login endpoint. (optional)
+token = token_example # String | A login token as returned by the login endpoint. Only required if session cookies are not supported. (optional)
 userId = userId_example # String | The user ID of a user previously registered with the service. Only required if session cookies are not supported. (optional)
 
 try: 
@@ -1125,7 +1125,7 @@ except ApiException as e:
 													var schemaWrapper = {
   "name" : "token",
   "in" : "query",
-  "description" : "A login token as returned by the login endpoint.",
+  "description" : "A login token as returned by the login endpoint. Only required if session cookies are not supported.",
   "required" : false,
   "type" : "string"
 };
@@ -1609,7 +1609,7 @@ except ApiException as e:
           </div>
           <div id="generator">
             <div class="content">
-              Generated 2017-05-27T15:54:59.733+01:00
+              Generated 2017-05-27T19:25:29.152+01:00
             </div>
           </div>
       </div>

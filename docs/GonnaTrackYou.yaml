@@ -56,7 +56,7 @@ paths:
       parameters:
         - name: token
           required: false
-          description: A login token as returned by the login endpoint.
+          description: A login token as returned by the login endpoint. Only required if session cookies are not supported.
           type: string
           in: query
         - name: userId
