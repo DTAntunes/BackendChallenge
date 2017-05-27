@@ -137,22 +137,8 @@ public class TestLogin {
 	@Test
 	public void testLoginSuccesses() {
 		try {
-			ContentResponse res = client.POST(LOGIN_URL).send();
-			assertEquals("Checking that no token submitted leads to auth error",
-			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
-
 			String withTokenParam = LOGIN_URL + "?accessToken=";
-			res = client.POST(withTokenParam
-			                  + TestUtility.invalidateAccessToken(allScopes.accessToken))
-			            .send();
-			assertEquals("Checking that invalid access token leads to auth error",
-			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
-
-			res = client.POST(withTokenParam + "CeciNestPasUnAccessToken").send();
-			assertEquals("Checking that arbitrary access token leads to auth error",
-			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
-
-			res = client.POST(withTokenParam + allScopes.accessToken).send();
+			ContentResponse res = client.POST(withTokenParam + allScopes.accessToken).send();
 			assertEquals("Successful login with no denied permissions leads to OK",
 			             StatusCodes.Success.OK, res.getStatus());
 			confirmOkResponse(res, allScopes.userId);
