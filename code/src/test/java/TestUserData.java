@@ -23,7 +23,6 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.restfb.ConnectionIterator;
 import com.restfb.types.TestUser;
 
-import base.GonnaTrackYou;
 import login.LoginModel;
 import login.UserModel;
 import login.responseModels.LocationPreference;

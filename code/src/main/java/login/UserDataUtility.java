@@ -32,11 +32,10 @@ public class UserDataUtility {
 					}
 				} catch (ParseException e) {
 					/*
-					 * I'm making the likely flawed assumption that they won't
-					 * change their timestamp format. There should be some sort
-					 * of logging call here, but I haven't set logging up for
-					 * this, so let's just prevent a change here from causing a
-					 * 500 error on the whole endpoint
+					 * I'm making the likely flawed assumption that they won't change their
+					 * timestamp format. There should be some sort of logging call here, but I
+					 * haven't set logging up for this, so let's just prevent a change here from
+					 * causing a 500 error on the whole endpoint
 					 */
 					if (Configuration.TESTING) {
 						// but just in case, let's break it in testing so it's

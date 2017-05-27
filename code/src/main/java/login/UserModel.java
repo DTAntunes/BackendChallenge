@@ -14,10 +14,9 @@ import util.Configuration;
 import util.DbPersistable;
 
 /**
- * Models a user by user ID and a long term access token used for requests.
- * Tracks denied permissions with that token, which is presumably the most
- * recently denied ones. Permissions can be revoked independent of the app, but
- * I'm ignoring that for now.
+ * Models a user by user ID and a long term access token used for requests. Tracks denied
+ * permissions with that token, which is presumably the most recently denied ones. Permissions can
+ * be revoked independent of the app, but I'm ignoring that for now.
  *
  * @author Dário T A
  */
@@ -67,6 +66,12 @@ public class UserModel implements DbPersistable {
 		return new LoginModel(userId, loginToken);
 	}
 
+	public List<String> getScopes() {
+		List<String> scopeCopy = new ArrayList<>();
+		scopeCopy.addAll(scopes);
+		return scopeCopy;
+	}
+
 	public String getUserId() {
 		return userId;
 	}
@@ -94,11 +99,5 @@ public class UserModel implements DbPersistable {
 
 	public boolean validAccessToken() {
 		return Configuration.FB_CLIENT.debugToken(accessToken).isValid();
-	}
-
-	public List<String> getScopes() {
-		List<String> scopeCopy = new ArrayList<>();
-		scopeCopy.addAll(scopes);
-		return scopeCopy;
 	}
 }

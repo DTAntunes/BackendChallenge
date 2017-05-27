@@ -5,8 +5,7 @@ import spark.Route;
 import spark.Spark;
 
 /**
- * An abstraction to more tightly couple routes to paths relative to how Spark
- * prefers to do it.
+ * An abstraction to more tightly couple routes to paths relative to how Spark prefers to do it.
  *
  * @author Dário T A
  */

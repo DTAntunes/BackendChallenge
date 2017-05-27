@@ -57,9 +57,9 @@ public class UserController {
 		try {
 			info = FB_CLIENT.debugToken(shortToken);
 		} catch (FacebookOAuthException e) {
-			// This can happen, for example, with an access token intended for
-			// another app
+			// This can happen, for example, with an access token intended for another app
 			if (Configuration.TESTING) {
+				// find the error quickly when testing
 				throw e;
 			} else {
 				response.status(401);
