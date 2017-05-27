@@ -1,5 +1,6 @@
 **/*.swp
 code/src/main/resources/config.properties
+code/src/test/resources/config.properties
 code/target
 .swagger-codegen-ignore
 docs/swagger-codegen-cli.jar
