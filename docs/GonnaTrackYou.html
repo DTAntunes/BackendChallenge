@@ -822,7 +822,7 @@ margin-bottom: 20px;
     },
     "count" : {
       "type" : "integer",
-      "description" : "The number of times the user was tagged in that location."
+      "description" : "The number of times the user was tagged in that location. Note that Facebook aggregates tags within about 12 hours of each other, so this may not match up exactly with the actualy number of tags."
     }
   }
 };
@@ -895,7 +895,7 @@ margin-bottom: 20px;
                         <div class="pull-right"></div>
                         <div class="clearfix"></div>
                         <p></p>
-                        <p class="marked">Using a token/userId previously registered with the service, allows a client to retrieve their popularity data, favourite band and where they&#39;ve been the most.
+                        <p class="marked">Using a token/userId previously registered with the service, allows a client to retrieve their popularity data, favourite band (defined as the one they&#39;ve liked longest - surely they would&#39;ve unliked it by now otherwise!) and where they&#39;ve been the most.
 </p>
                         <p></p>
                         <br />
@@ -1609,7 +1609,7 @@ except ApiException as e:
           </div>
           <div id="generator">
             <div class="content">
-              Generated 2017-05-27T19:25:29.152+01:00
+              Generated 2017-05-27T20:38:50.472+01:00
             </div>
           </div>
       </div>

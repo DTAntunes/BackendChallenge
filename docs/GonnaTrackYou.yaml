@@ -52,7 +52,7 @@ paths:
       operationId: GetUserData
       summary: Retrieve user's popularity, interests and location data
       description: |
-        Using a token/userId previously registered with the service, allows a client to retrieve their popularity data, favourite band and where they've been the most.
+        Using a token/userId previously registered with the service, allows a client to retrieve their popularity data, favourite band (defined as the one they've liked longest - surely they would've unliked it by now otherwise!) and where they've been the most.
       parameters:
         - name: token
           required: false
@@ -156,7 +156,7 @@ definitions:
                     description: The name of the user's favourite place based on how many times they've tagged themselves there or been tagged there. Only reports locations for which Facebook reports a city name and country.
                   count:
                     type: integer
-                    description: The number of times the user was tagged in that location.
+                    description: The number of times the user was tagged in that location. Note that Facebook aggregates tags within about 12 hours of each other, so this may not match up exactly with the actualy number of tags.
               popular:
                 type: object
                 properties:
