@@ -14,7 +14,7 @@ public class Popularity extends ErrorableData {
 			this.popular = null;
 			this.popularMeasure = null;
 		} else {
-			this.popular = friendCount > POPULAR_FRIEND_THRESHOLD;
+			this.popular = friendCount >= POPULAR_FRIEND_THRESHOLD;
 			this.popularMeasure = friendCount * 100 / MAX_FRIENDS;
 		}
 	}
