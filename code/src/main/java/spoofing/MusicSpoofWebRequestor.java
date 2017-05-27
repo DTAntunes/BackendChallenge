@@ -65,7 +65,11 @@ public class MusicSpoofWebRequestor implements WebRequestor {
 			                                          Configuration.FB_API_VERSION).fetchObject("me",
 			                                                                                    JsonObject.class)
 			                                                                       .getString("id");
-			return new Response(200, RESPONSES_BY_ID.get(userId));
+			if (RESPONSES_BY_ID.containsKey(userId)) {
+				return new Response(200, RESPONSES_BY_ID.get(userId));
+			} else {
+				return actualRequestor.executeGet(url);
+			}
 		} else {
 			return actualRequestor.executeGet(url);
 		}
