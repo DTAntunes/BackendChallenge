@@ -39,7 +39,7 @@ public class LoginTests {
 		}
 	}
 
-	private static final String LOGIN_URL = TestConfig.BASE_URL + Paths.LOGIN;
+	private static final String LOGIN_URL = TestUtility.BASE_URL + Paths.LOGIN;
 	private static final Gson DESERIALISER = new Gson();
 
 	private static void confirmOkResponse(ContentResponse res, String userId) {
@@ -52,16 +52,6 @@ public class LoginTests {
 		              UserModel.getUser(userId));
 	}
 
-	private static final String invalidateAccessToken(String token) {
-		if (token.toUpperCase().equals(token)) {
-			return token.toLowerCase();
-		} else if (token.toLowerCase().equals(token)) {
-			return token.toUpperCase();
-		} else {
-			return token.toUpperCase();
-		}
-	}
-
 	private static User allScopes;
 	private static User missingFriends;
 
@@ -69,7 +59,7 @@ public class LoginTests {
 	
 	@BeforeClass
 	public static void setUpServer() throws Exception {
-		GonnaTrackYou.startServer(TestConfig.TEST_SPARK_PORT);
+		GonnaTrackYou.startServer(TestUtility.TEST_SPARK_PORT);
 		FacebookClient fbClient = Configuration.FB_CLIENT;
 
 		String permissions = UserController.PLACES_SCOPE + "," + UserController.LIKES_SCOPE + ","
@@ -127,7 +117,8 @@ public class LoginTests {
 			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());
 
 			String withTokenParam = LOGIN_URL + "?accessToken=";
-			res = client.POST(withTokenParam + invalidateAccessToken(allScopes.accessToken))
+			res = client.POST(withTokenParam
+			                  + TestUtility.invalidateAccessToken(allScopes.accessToken))
 			            .send();
 			assertEquals("Checking that invalid access token leads to auth error",
 			             StatusCodes.ClientError.UNAUTHORIZED, res.getStatus());

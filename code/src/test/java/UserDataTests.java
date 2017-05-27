@@ -83,7 +83,7 @@ public class UserDataTests {
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		GonnaTrackYou.startServer(TestConfig.TEST_SPARK_PORT);
+		GonnaTrackYou.startServer(TestUtility.TEST_SPARK_PORT);
 
 		// these test users are set up manually beforehand
 		ClassLoader loader = MusicSpoofWebRequestor.class.getClassLoader();
@@ -109,14 +109,14 @@ public class UserDataTests {
 		ContentResponse res = null;
 		try {
 			// Retrieve the access token and create an account/log in
-			res = client.POST(TestConfig.BASE_URL + Paths.LOGIN + "?accessToken="
+			res = client.POST(TestUtility.BASE_URL + Paths.LOGIN + "?accessToken="
 			                  + user.getAccessToken())
 			            .send();
 			LoginModel login = deserialiser.fromJson(new String(res.getContent()),
 			                                         LoginModel.class);
 
 			// Retrieve user data
-			res = client.GET(TestConfig.BASE_URL + Paths.GET_DATA + "?token=" + login.getToken()
+			res = client.GET(TestUtility.BASE_URL + Paths.GET_DATA + "?token=" + login.getToken()
 			                 + "&userId=" + user.getId());
 		} catch (InterruptedException | TimeoutException | ExecutionException e) {
 			e.printStackTrace();
